@@ -5,10 +5,10 @@ import Control.Applicative (pure, (*>),(<*>))
 import Control.Monad (msum)
 import Data.List (stripPrefix, tails)
 import Data.Maybe (fromJust)
-import Text.ParserCombinators.Parsec.Prim (GenParser, Parser)
+import Text.ParserCombinators.Parsec.Prim  ((<?>), GenParser) 
 import Text.ParserCombinators.Parsec.Error (ParseError, errorPos, errorMessages, showErrorMessages)
-import Text.ParserCombinators.Parsec.Pos (incSourceLine, sourceName, sourceLine, sourceColumn)
-import Text.Parsec.Prim (State(..), Reply(..), mkPT, runParsecT, getPosition, token, parse, many)
+import Text.ParserCombinators.Parsec.Pos   (incSourceLine, sourceName, sourceLine, sourceColumn)
+import Text.ParserCombinators.Parsec.Prim  (getPosition, token, parse, many)
 
 import Web.Routes.Base (decodePathInfo, encodePathInfo)
 
@@ -19,13 +19,18 @@ stripOverlap x y = fromJust $ msum $ [ stripPrefix p y | p <- tails x]
 type URLParser a = GenParser String () a
 
 segment :: String -> URLParser String
-segment x = pToken (const x) (\y -> if x == y then Just x else Nothing)
+segment x = (pToken (const x) (\y -> if x == y then Just x else Nothing)) <?> x
 
 anySegment :: URLParser String
 anySegment = pToken (const "any string") Just
 
+pToken :: tok -> (String -> Maybe a) -> URLParser a
 pToken msg f = do pos <- getPosition
                   token id (const $ incSourceLine pos 1) f
+
+{-
+
+This requires parsec 3, can't figure out how to do it in parsec 2 yet.
 
 p2u :: Parser a -> URLParser a
 p2u p = 
@@ -40,6 +45,7 @@ p2u p =
       fixReply _ (Error err) = (Error err)
       fixReply ss (Ok a (State "" sPos sUser) e) = (Ok a (State ss sPos sUser) e) 
       fixReply ss (Ok a (State s sPos sUser) e) = (Ok a (State (s:ss) sPos sUser) e) 
+-}
 
 {-
 p2u :: Parser a -> URLParser a

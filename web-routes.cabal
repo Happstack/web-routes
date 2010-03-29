@@ -11,7 +11,7 @@ Cabal-Version:    >= 1.6
 Build-type:       Simple
 
 Library
-        Build-Depends:    base >= 4 && < 5, parsec >= 3.1.0, bytestring, network, utf8-string
+        Build-Depends:    base >= 4 && < 5, parsec >= 2 && <3, bytestring, network, utf8-string
         Exposed-Modules:  Web.Routes
                           Web.Routes.Base
                           Web.Routes.HandleT

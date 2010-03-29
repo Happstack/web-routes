@@ -4,7 +4,7 @@ import Data.Maybe (isJust, fromJust)
 import Data.Monoid (Monoid(mempty, mappend))
 import Web.Routes.Base (decodePathInfo, encodePathInfo)
 import Web.Routes.Monad (RouteT, runRouteT)
-import Text.Parsec.Error (ParseError)
+import Text.ParserCombinators.Parsec.Error (ParseError)
 
 data Site url a
     = Site { handleSite         :: (url -> String) -> url -> a
