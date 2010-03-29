@@ -127,8 +127,16 @@ instance PathInfo String where
   
 instance PathInfo Int where  
   toPathSegments i = [show i]
-  fromPathSegments = pToken (const "integer") checkInt
+  fromPathSegments = pToken (const "int") checkInt
    where checkInt str = 
            case reads str of
              [(n,[])] -> Just n
              _ ->        Nothing
+             
+instance PathInfo Integer where  
+  toPathSegments i = [show i]
+  fromPathSegments = pToken (const "integer") checkInteger
+   where checkInteger str = 
+           case reads str of
+             [(n,[])] -> Just n
+             _ ->        Nothing             
