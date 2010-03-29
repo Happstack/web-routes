@@ -22,7 +22,7 @@ import Network.URI
 
 {-
 
-From RFC1738 § 3.3
+From RFC1738 - 3.3
 
    The HTTP URL scheme is used to designate Internet resources
    accessible using HTTP (HyperText Transfer Protocol).
@@ -45,7 +45,7 @@ From RFC1738 § 3.3
    reserved.  The "/" character may be used within HTTP to designate a
    hierarchical structure.
 
-From FRC1808 § 2.1 URL Syntactic Components
+From FRC1808 - 2.1 URL Syntactic Components
 
    The URL syntax is dependent upon the scheme.  Some schemes use
    reserved characters like "?" and ";" to indicate special components,
@@ -79,7 +79,7 @@ From FRC1808 § 2.1 URL Syntactic Components
    uchar       = unreserved | escape
    unreserved  = alpha | digit | safe | extra
 
-From RFC2396 § 3.3
+From RFC2396 - 3.3
 
       path_segments = segment *( "/" segment )
       segment       = *pchar *( ";" param )
@@ -95,7 +95,7 @@ From RFC2396 § 3.3
    The parameters are not significant to the parsing of relative
    references.
 
-From RFC3986 § 3.3
+From RFC3986 - 3.3
 
    The path component contains data, usually organized in hierarchical
    form, that, along with data in the non-hierarchical query component
@@ -187,7 +187,7 @@ specific url spec. For example, a url producer can choose to use , as
 a reserved character. However, it is not obligated to use , as a
 reserved character.
 
-From RFC3986 § 2.2
+From RFC3986 - 2.2
 
    Characters in the "reserved" set are not reserved in all contexts.
    The set of characters actually reserved within any given URI
