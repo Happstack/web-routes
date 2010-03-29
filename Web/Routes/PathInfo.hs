@@ -5,7 +5,7 @@ import Control.Applicative (pure, (*>),(<*>))
 import Control.Monad (msum)
 import Data.List (stripPrefix, tails)
 import Data.Maybe (fromJust)
-import Text.ParserCombinators.Parsec.Prim  ((<?>), GenParser) 
+import Text.ParserCombinators.Parsec.Prim  ((<?>), GenParser, getInput, setInput, pzero) 
 import Text.ParserCombinators.Parsec.Error (ParseError, errorPos, errorMessages, showErrorMessages)
 import Text.ParserCombinators.Parsec.Pos   (incSourceLine, sourceName, sourceLine, sourceColumn)
 import Text.ParserCombinators.Parsec.Prim  (getPosition, token, parse, many)
@@ -18,16 +18,24 @@ stripOverlap x y = fromJust $ msum $ [ stripPrefix p y | p <- tails x]
 
 type URLParser a = GenParser String () a
 
+pToken :: tok -> (String -> Maybe a) -> URLParser a
+pToken msg f = do pos <- getPosition
+                  token id (const $ incSourceLine pos 1) f
+
 segment :: String -> URLParser String
 segment x = (pToken (const x) (\y -> if x == y then Just x else Nothing)) <?> x
 
 anySegment :: URLParser String
 anySegment = pToken (const "any string") Just
 
-pToken :: tok -> (String -> Maybe a) -> URLParser a
-pToken msg f = do pos <- getPosition
-                  token id (const $ incSourceLine pos 1) f
-
+patternParse :: ([String] -> Either String a) -> URLParser a
+patternParse p =
+  do segs <- getInput
+     case p segs of
+       (Right r) ->
+         do setInput []
+            return r
+       (Left err) -> fail err
 {-
 
 This requires parsec 3, can't figure out how to do it in parsec 2 yet.
