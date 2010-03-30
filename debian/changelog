@@ -1,3 +1,9 @@
+haskell-web-routes (0.19.3) unstable; urgency=low
+
+  * Added Functor (Site url)
+
+ -- Jeremy Shaw <jeremy@seereason.com>  Mon, 29 Mar 2010 22:03:46 -0500
+
 haskell-web-routes (0.19.2) unstable; urgency=low
 
   * added, parseSegments :: URLParser a -> [String] -> Either String a

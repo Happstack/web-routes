@@ -13,6 +13,9 @@ data Site url a
            , parsePathSegments  :: [String] -> Either String url
            }
 
+instance Functor (Site url) where
+  fmap f site = site { handleSite = \showFn u -> f (handleSite site showFn u) }
+
 withDefault :: Site url a -> String -> Either String url
 withDefault site pathInfo
   | null pathInfo && isJust (defaultPage site) = Right (fromJust (defaultPage site))
