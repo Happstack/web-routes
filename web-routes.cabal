@@ -1,5 +1,5 @@
 Name:             web-routes
-Version:          0.19.3
+Version:          0.20.0
 License:          BSD3
 Author:           jeremy@seereason.com
 Maintainer:       partners@seereason.com
@@ -14,10 +14,11 @@ Library
         Build-Depends:    base >= 4 && < 5, parsec >= 2 && <3, bytestring, network, utf8-string
         Exposed-Modules:  Web.Routes
                           Web.Routes.Base
-                          Web.Routes.HandleT
-                          Web.Routes.Monad
                           Web.Routes.PathInfo
                           Web.Routes.QuickCheck
+                          Web.Routes.RouteT
+                          Web.Routes.Site
+
         Extensions:       TemplateHaskell,
                           FlexibleContexts,
                           CPP

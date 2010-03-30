@@ -11,6 +11,7 @@ import Text.ParserCombinators.Parsec.Pos   (incSourceLine, sourceName, sourceLin
 import Text.ParserCombinators.Parsec.Prim  (getPosition, token, parse, many)
 
 import Web.Routes.Base (decodePathInfo, encodePathInfo)
+import Web.Routes.Site (Site(..))
 
 -- this is not very efficient. Among other things, we need only consider the last 'n' characters of x where n == length y.
 stripOverlap :: (Eq a) => [a] -> [a] -> [a]
@@ -111,6 +112,14 @@ fromPathInfo pi =
   where
     dropSlash ('/':rs) = rs
     dropSlash x        = x
+    
+mkSitePI :: (PathInfo url) => Maybe url -> ((url -> String) -> url -> a) -> Site url a
+mkSitePI mDefPage handler =
+  Site { handleSite         = handler
+       , defaultPage        = mDefPage
+       , formatPathSegments = toPathSegments
+       , parsePathSegments  = parseSegments fromPathSegments
+       }
 
 showParseError :: ParseError -> String
 showParseError pErr =

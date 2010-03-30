@@ -1,7 +1,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving, FlexibleInstances, TypeFamilies, PackageImports, FlexibleContexts, UndecidableInstances #-}
 -----------------------------------------------------------------------------
 -- |
--- Module      :  RouteT.Monad
+-- Module      :  Web.Route.RouteT
 -- Copyright   :  (c) 2010 Jeremy Shaw
 -- License     :  BSD-style (see the file LICENSE)
 --
@@ -11,7 +11,7 @@
 --
 -- Declaration of the 'RouteT' monad transformer
 -----------------------------------------------------------------------------
-module Web.Routes.Monad where
+module Web.Routes.RouteT where
 
 import Control.Applicative (Applicative((<*>), pure), Alternative((<|>), empty))
 import Control.Monad (MonadPlus(mzero, mplus))

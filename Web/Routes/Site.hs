@@ -1,10 +1,8 @@
-module Web.Routes.HandleT where
+module Web.Routes.Site where
 
 import Data.Maybe (isJust, fromJust)
-import Data.Monoid (Monoid(mempty, mappend))
+import Data.Monoid (Monoid(mappend))
 import Web.Routes.Base (decodePathInfo, encodePathInfo)
-import Web.Routes.Monad (RouteT, runRouteT)
-import Text.ParserCombinators.Parsec.Error (ParseError)
 
 data Site url a
     = Site { handleSite         :: (url -> String) -> url -> a
@@ -25,4 +23,4 @@ runSite :: String -> Site url a -> String -> (Either String a)
 runSite approot site pathInfo =
   case (withDefault site) pathInfo of
     (Left errs) -> (Left errs)
-    (Right url)  -> Right $ (handleSite site) (\url -> approot `mappend` (encodePathInfo $ formatPathSegments site url)) url
+    (Right url)  -> Right $ (handleSite site) (\url -> approot ++ (encodePathInfo $ formatPathSegments site url)) url
