@@ -36,6 +36,13 @@ patternParse p =
          do setInput []
             return r
        (Left err) -> fail err
+       
+parseSegments :: URLParser a -> [String] -> Either String a
+parseSegments p segments = 
+  case parse p (show segments) segments of
+    (Left e)  -> Left (showParseError e)
+    (Right r) -> Right r
+
 {-
 
 This requires parsec 3, can't figure out how to do it in parsec 2 yet.
@@ -100,10 +107,7 @@ toPathInfo = ('/' :) . encodePathInfo . toPathSegments
 -- a trailing slash, then things might not line up.
 fromPathInfo :: (PathInfo u) => String -> Either String u
 fromPathInfo pi = 
-  let segments = (decodePathInfo $ dropSlash pi) 
-  in case parse fromPathSegments (show segments) segments of
-    (Left e)  -> Left (showParseError e)
-    (Right r) -> Right r
+  parseSegments fromPathSegments (decodePathInfo $ dropSlash pi) 
   where
     dropSlash ('/':rs) = rs
     dropSlash x        = x
