@@ -236,9 +236,10 @@ decodePathInfo =
       o = flip (.)
 
 splitPaths :: String -> [String]
-splitPaths = splitPaths' []
+splitPaths "" = []
+splitPaths s =
+    let (x, y) = break (== '/') s
+     in x : splitPaths (drop1Slash y)
   where
-    splitPaths' acc str =
-      case break (== '/') str of
-        (path, "") -> reverse (path : acc)
-        (p, '/' : str') -> splitPaths' (p : acc) str'
+    drop1Slash ('/':x) = x
+    drop1Slash x = x
