@@ -9,11 +9,11 @@
 -- Stability   :  experimental
 -- Portability :  portable
 --
--- Declaration of common RouteT functions
+-- Conversions between raw pathinfos and decoded path segments.
 -----------------------------------------------------------------------------
 module Web.Routes.Base 
-       ( decodePathInfo
-       , encodePathInfo
+       ( encodePathInfo
+       , decodePathInfo
        ) where
 
 import Codec.Binary.UTF8.String (encodeString, decodeString)
@@ -214,6 +214,32 @@ http scheme does have an authority.
 
 -}
 
+{-|
+Encodes a list of path segments into a valid URL fragment.
+
+This function takes the following three steps:
+
+* UTF-8 encodes the characters.
+
+* Performs percent encoding on all unreserved characters, as well as \:\@\=\+\$,
+
+* Intercalates with a slash.
+
+For example:
+
+> encodePathInfo [\"foo\", \"bar\", \"baz\"]
+
+\"foo\/bar\/baz\"
+
+> encodePathInfo [\"foo bar\", \"baz\/bin\"]
+
+\"foo\%20bar\/baz\%2Fbin\"
+
+> encodePathInfo [\"שלום\"]
+
+\"%D7%A9%D7%9C%D7%95%D7%9D\"
+
+-}
 encodePathInfo :: [String] -> String
 encodePathInfo = 
   map encodeString  `o` -- utf-8 encode the data characters in path components (we have not added any delimiters yet)
@@ -225,6 +251,32 @@ encodePathInfo =
       o :: (a -> b) -> (b -> c) -> a -> c
       o = flip (.)
 
+{-|
+Performs the inverse operation of 'encodePathInfo'.
+
+In particular, this function:
+
+* Splits a string at each occurence of a forward slash.
+
+* Percent-decodes the individual pieces.
+
+* UTF-8 decodes the resulting data.
+
+This utilizes 'decodeString' from the utf8-string library, and thus all UTF-8
+decoding errors are handled as per that library.
+
+In general, you will want to strip the leading slash from a pathinfo before
+passing it to this function. For example:
+
+> decodePathInfo \"\"
+
+\[\]
+
+> decodePathInfo \"\/\"
+
+[\"\"]
+
+-}
 decodePathInfo :: String -> [String]
 decodePathInfo =
   splitPaths   `o` -- split path on delimiters
