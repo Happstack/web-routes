@@ -4,10 +4,38 @@ import Data.Maybe (isJust, fromJust)
 import Data.Monoid (Monoid(mappend))
 import Web.Routes.Base (decodePathInfo, encodePathInfo)
 
+{-|
+
+A site groups together the three functions necesary to make an application:
+
+* A function to convert from the URL type to path segments.
+
+* A function to convert from path segments to the URL, if possible.
+
+* A function to return the application for a given URL.
+
+There are two type parameters for Site: the first is the URL datatype, the
+second is the application datatype. The application datatype will depend upon
+your server backend.
+-}
 data Site url a
-    = Site { handleSite         :: (url -> String) -> url -> a
+    = Site {
+           {-|
+               Return the appropriate application for a given URL.
+
+               The first argument is a function which will give an appropriate
+               URL (as a String) for a URL datatype. This is usually
+               constructed by a combination of 'formatPathSegments' and the
+               prepending of an absolute application root.
+
+               Well behaving applications should use this function to
+               generating all internal URLs.
+           -}
+             handleSite         :: (url -> String) -> url -> a
            , defaultPage        :: Maybe url
+           -- | This function must be the inverse of 'parsePathSegments'.
            , formatPathSegments :: url -> [String]
+           -- | This function must be the inverse of 'formatPathSegments'.
            , parsePathSegments  :: [String] -> Either String url
            }
 
