@@ -113,10 +113,9 @@ fromPathInfo pi =
     dropSlash ('/':rs) = rs
     dropSlash x        = x
     
-mkSitePI :: (PathInfo url) => Maybe url -> ((url -> String) -> url -> a) -> Site url a
-mkSitePI mDefPage handler =
+mkSitePI :: (PathInfo url) => ((url -> String) -> url -> a) -> Site url a
+mkSitePI handler =
   Site { handleSite         = handler
-       , defaultPage        = mDefPage
        , formatPathSegments = toPathSegments
        , parsePathSegments  = parseSegments fromPathSegments
        }

@@ -32,23 +32,29 @@ data Site url a
                generating all internal URLs.
            -}
              handleSite         :: (url -> String) -> url -> a
-           , defaultPage        :: Maybe url
            -- | This function must be the inverse of 'parsePathSegments'.
            , formatPathSegments :: url -> [String]
            -- | This function must be the inverse of 'formatPathSegments'.
            , parsePathSegments  :: [String] -> Either String url
            }
 
+-- | Override the \"default\" URL, ie the result of 'parsePathSegments' [].
+setDefault :: url -> Site url a -> Site url a
+setDefault defUrl (Site handle format parse) =
+    Site handle format parse'
+  where
+    parse' [] = Right defUrl
+    parse' x = parse x
+
 instance Functor (Site url) where
   fmap f site = site { handleSite = \showFn u -> f (handleSite site showFn u) }
 
-withDefault :: Site url a -> String -> Either String url
-withDefault site pathInfo
-  | null pathInfo && isJust (defaultPage site) = Right (fromJust (defaultPage site))
-  | otherwise     = (parsePathSegments site) (decodePathInfo pathInfo)
-                         
-runSite :: String -> Site url a -> String -> (Either String a)
+-- | Retrieve the application to handle a given request.
+runSite :: String -- ^ application root, with trailing slash
+        -> Site url a
+        -> String -- ^ path info, leading slash stripped
+        -> (Either String a)
 runSite approot site pathInfo =
-  case (withDefault site) pathInfo of
+  case parsePathSegments site $ decodePathInfo pathInfo of
     (Left errs) -> (Left errs)
     (Right url)  -> Right $ (handleSite site) (\url -> approot ++ (encodePathInfo $ formatPathSegments site url)) url
