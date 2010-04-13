@@ -279,7 +279,7 @@ passing it to this function. For example:
 -}
 decodePathInfo :: String -> [String]
 decodePathInfo =
-  splitPaths   `o` -- split path on delimiters
+  splitPaths         `o` -- split path on delimiters
   map unEscapeString `o` -- decode any percent encoded characters
   map decodeString       -- decode octets
     where
@@ -290,8 +290,8 @@ decodePathInfo =
 splitPaths :: String -> [String]
 splitPaths "" = []
 splitPaths s =
-    let (x, y) = break (== '/') s
-     in x : splitPaths (drop1Slash y)
+    let (x, y) = break (== '/') $ drop1Slash s
+     in x : splitPaths y
   where
     drop1Slash ('/':x) = x
     drop1Slash x = x

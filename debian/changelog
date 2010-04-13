@@ -1,4 +1,13 @@
-haskell-web-routes (0.20.0) unstable; urgency=low
+haskell-web-routes (0.22.0) unstable; urgency=low
+
+  * Replace defaultPage with setDefault
+  * Added version bounds for Build-Depends
+  * Haddocks for Web.Route.Site
+  * new behavior for splitPaths
+
+ -- Jeremy Shaw <jeremy@seereason.com>  Tue, 13 Apr 2010 08:42:49 -0500
+
+haskell-web-routes (0.21.0) unstable; urgency=low
 
   * HandleT -> Site, Monad -> RouteT
 
