@@ -91,7 +91,7 @@ class PathInfo a where
   fromPathSegments :: URLParser a
 
 toPathInfo :: (PathInfo u) => u -> String
-toPathInfo = ('/' :) . encodePathInfo . toPathSegments
+toPathInfo = ('/' :) . flip encodePathInfo [] . toPathSegments
 
 -- should this fail if not all the input was consumed?  
 --
@@ -113,10 +113,10 @@ fromPathInfo pi =
     dropSlash ('/':rs) = rs
     dropSlash x        = x
     
-mkSitePI :: (PathInfo url) => ((url -> String) -> url -> a) -> Site url a
+mkSitePI :: (PathInfo url) => ((url -> [(String, String)] -> String) -> url -> a) -> Site url a
 mkSitePI handler =
   Site { handleSite         = handler
-       , formatPathSegments = toPathSegments
+       , formatPathSegments = (\x -> (x, [])) . toPathSegments
        , parsePathSegments  = parseSegments fromPathSegments
        }
 

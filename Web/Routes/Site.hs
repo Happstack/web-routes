@@ -31,9 +31,9 @@ data Site url a
                Well behaving applications should use this function to
                generating all internal URLs.
            -}
-             handleSite         :: (url -> String) -> url -> a
+             handleSite         :: (url -> [(String, String)] -> String) -> url -> a
            -- | This function must be the inverse of 'parsePathSegments'.
-           , formatPathSegments :: url -> [String]
+           , formatPathSegments :: url -> ([String], [(String, String)])
            -- | This function must be the inverse of 'formatPathSegments'.
            , parsePathSegments  :: [String] -> Either String url
            }
@@ -55,6 +55,10 @@ runSite :: String -- ^ application root, with trailing slash
         -> String -- ^ path info, leading slash stripped
         -> (Either String a)
 runSite approot site pathInfo =
-  case parsePathSegments site $ decodePathInfo pathInfo of
-    (Left errs) -> (Left errs)
-    (Right url)  -> Right $ (handleSite site) (\url -> approot ++ (encodePathInfo $ formatPathSegments site url)) url
+    case parsePathSegments site $ decodePathInfo pathInfo of
+        (Left errs) -> (Left errs)
+        (Right url) -> Right $ handleSite site go url
+  where
+    go url qs =
+        let (pieces, qs') = formatPathSegments site url
+         in approot ++ encodePathInfo pieces (qs ++ qs')
