@@ -303,6 +303,7 @@ showParams [] = ""
 showParams z =
     '?' : intercalate "&" (map go z)
   where
+    go (x, "") = go' x
     go (x, y) = go' x ++ '=' : go' y
     go' = concatMap encodeUrlChar
 
