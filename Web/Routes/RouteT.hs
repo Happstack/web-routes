@@ -22,10 +22,10 @@ import Control.Monad.Fix (MonadFix(mfix))
 type Link = String
 
 -- |monad transformer for generating URLs
-newtype RouteT url m a = RouteT { unRouteT :: (url -> Link) -> m a }
+newtype RouteT url m a = RouteT { unRouteT :: (url -> [(String, String)] -> Link) -> m a }
 --     deriving (Functor, Monad, MonadFix, MonadPlus) -- , MonadIO, MonadTrans, MonadReader (url -> Link))
 
-runRouteT :: RouteT url m a -> (url -> Link) -> m a
+runRouteT :: RouteT url m a -> (url -> [(String, String)] -> Link) -> m a
 runRouteT = unRouteT
 
 -- | Transform the computation inside a @RouteT@.
@@ -33,18 +33,18 @@ mapRouteT :: (m a -> n b) -> RouteT url m a -> RouteT url n b
 mapRouteT f (RouteT m) = RouteT $ f . m
 
 -- | Execute a computation in a modified environment
-withRouteT :: ((url' -> Link) -> (url -> Link)) -> RouteT url m a -> RouteT url' m a
+withRouteT :: ((url' -> [(String, String)] -> Link) -> (url -> [(String, String)] -> Link)) -> RouteT url m a -> RouteT url' m a
 withRouteT f (RouteT m) = RouteT $ m . f
 
 liftRouteT :: m a -> RouteT url m a
 liftRouteT m = RouteT (const m)
 
-askRouteT :: (Monad m) => RouteT url m (url -> String)
+askRouteT :: (Monad m) => RouteT url m (url -> [(String, String)] -> String)
 askRouteT = RouteT return
 
 instance (Functor m) => Functor (RouteT url m) where
   fmap f = mapRouteT (fmap f)
-  
+
 instance (Applicative m) => Applicative (RouteT url m) where  
   pure = liftRouteT . pure
   f <*> v = RouteT $ \ url -> unRouteT f url <*> unRouteT v url
@@ -69,19 +69,23 @@ instance (MonadFix m) => MonadFix (RouteT url m) where
 
 class ShowURL m where
     type URL m
-    showURL :: (URL m) -> m Link -- ^ convert a URL value into a Link (aka, a String)
+    showURLParams :: (URL m) -> [(String, String)] -> m Link -- ^ convert a URL value into a Link (aka, a String)
 
 instance (Monad m) => ShowURL (RouteT url m) where
     type URL (RouteT url m) = url
-    showURL url =
+    showURLParams url params =
         do showF <- askRouteT
-           return (showF url)
+           return (showF url params)
+
+-- | convert a URL value into a Link (aka, a String)
+showURL :: ShowURL m => URL m -> m Link  
+showURL url = showURLParams url []
 
 -- |used to embed a RouteT into a larger parent url
 nestURL :: (Monad m) => (url2 -> url1) -> RouteT url2 m a -> RouteT url1 m a
 nestURL b = withRouteT (. b)
 
-crossURL :: (Monad m) => (url2 -> url1) -> RouteT url1 m (url2 -> Link)
-crossURL f = 
+crossURL :: (Monad m) => (url2 -> url1) -> [(String, String)] -> RouteT url1 m (url2 -> Link)
+crossURL f params = 
     do showF <- askRouteT
-       return $ \url2 -> showF (f url2)
+       return $ \url2 -> showF (f url2) params

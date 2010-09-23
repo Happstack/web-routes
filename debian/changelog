@@ -1,3 +1,9 @@
+haskell-web-routes (0.23.0) unstable; urgency=low
+
+  * Added query string support
+
+ -- Jeremy Shaw <jeremy@seereason.com>  Thu, 23 Sep 2010 08:50:20 -0500
+
 haskell-web-routes (0.22.0) unstable; urgency=low
 
   * Replace defaultPage with setDefault

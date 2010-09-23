@@ -17,7 +17,7 @@ module Web.Routes.Base
        ) where
 
 import Codec.Binary.UTF8.String (encodeString, decodeString)
-import Data.List (intercalate)
+import Data.List (intercalate, intersperse)
 import Network.URI
 
 {-
@@ -246,7 +246,7 @@ encodePathInfo pieces qs =
           map (escapeURIString (\c -> isUnreserved c || c `elem` ":@&=+$,"))   `o` -- percent encode the characters
           map (\str -> case str of "." -> "%2E" ; ".." -> "%2E%2E" ; _ -> str) `o` -- encode . and ..
           intercalate "/"  -- add in the delimiters
-      y = showParams qs
+      y = paramsToQueryString qs
    in x pieces ++ y
     where
       -- reverse composition 
@@ -298,34 +298,19 @@ splitPaths s =
     drop1Slash ('/':x) = x
     drop1Slash x = x
 
-showParams :: [(String, String)] -> String
-showParams [] = ""
-showParams z =
-    '?' : intercalate "&" (map go z)
-  where
-    go (x, "") = go' x
-    go (x, y) = go' x ++ '=' : go' y
-    go' = concatMap encodeUrlChar
+paramsToQueryString :: [(String, String)] -> String
+paramsToQueryString [] = ""
+paramsToQueryString ps = '?' : concat (intersperse "&" (map paramToQueryString ps))
+    where
+      isOK :: Char -> Bool
+      isOK c = isUnreserved c || (c `elem` ":@$,")
 
--- | Taken straight from web-encodings; reimplemented here to avoid extra
--- dependencies.
-encodeUrlChar :: Char -> String
-encodeUrlChar c
-    -- List of unreserved characters per RFC 3986
-    -- Gleaned from http://en.wikipedia.org/wiki/Percent-encoding
-    | 'A' <= c && c <= 'Z' = [c]
-    | 'a' <= c && c <= 'z' = [c]
-    | '0' <= c && c <= '9' = [c]
-encodeUrlChar c@'-' = [c]
-encodeUrlChar c@'_' = [c]
-encodeUrlChar c@'.' = [c]
-encodeUrlChar c@'~' = [c]
-encodeUrlChar ' ' = "+"
-encodeUrlChar y =
-    let (a, c) = fromEnum y `divMod` 16
-        b = a `mod` 16
-        showHex' x
-            | x < 10 = toEnum $ x + (fromEnum '0')
-            | x < 16 = toEnum $ x - 10 + (fromEnum 'A')
-            | otherwise = error $ "Invalid argument to showHex: " ++ show x
-     in ['%', showHex' b, showHex' c]
+      escapeParamChar :: Char -> String
+      escapeParamChar ' ' = "+"
+      escapeParamChar c = escapeURIChar isOK c
+
+      escapeParamString :: String -> String
+      escapeParamString = concatMap escapeParamChar
+
+      paramToQueryString :: (String, String) -> String
+      paramToQueryString (k,v) = (escapeParamString k) ++ ('=' : escapeParamString v)
