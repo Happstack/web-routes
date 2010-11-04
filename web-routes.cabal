@@ -1,6 +1,7 @@
 Name:             web-routes
 Version:          0.23.1
 License:          BSD3
+License-File:     LICENSE
 Author:           jeremy@seereason.com
 Maintainer:       partners@seereason.com
 Bug-Reports:      http://bugzilla.seereason.com/
