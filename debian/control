@@ -45,7 +45,10 @@ Description: Library for maintaining correctness and composability of URLs withi
  .
  This package contains the libraries compiled with profiling enabled.
 
-Package: haskell-web-routes-doc
+Package: libghc6-web-routes-doc
+Conflicts: haskell-web-routes-doc
+Provides: haskell-web-routes-doc
+Replaces: haskell-web-routes-doc
 Architecture: all
 Section: doc
 Depends: ${haskell:Depends},
