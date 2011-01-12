@@ -69,7 +69,7 @@ instance (MonadFix m) => MonadFix (RouteT url m) where
 
 class ShowURL m where
     type URL m
-    showURLParams :: (URL m) -> [(String, String)] -> m Link -- ^ convert a URL value into a Link (aka, a String)
+    showURLParams :: (URL m) -> [(String, String)] -> m Link -- ^ convert a URL value and a parameter list into a Link (aka, a String)
 
 instance (Monad m) => ShowURL (RouteT url m) where
     type URL (RouteT url m) = url
@@ -77,7 +77,7 @@ instance (Monad m) => ShowURL (RouteT url m) where
         do showF <- askRouteT
            return (showF url params)
 
--- | convert a URL value into a Link (aka, a String)
+-- | convert a URL value into a Link (aka, a String) using a null parameter list.
 showURL :: ShowURL m => URL m -> m Link  
 showURL url = showURLParams url []
 
