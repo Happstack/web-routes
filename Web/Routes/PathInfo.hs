@@ -5,11 +5,9 @@ import Control.Applicative (pure, (*>),(<*>))
 import Control.Monad (msum)
 import Data.List (stripPrefix, tails)
 import Data.Maybe (fromJust)
-import Text.ParserCombinators.Parsec.Prim  ((<?>), GenParser, getInput, setInput, pzero) 
 import Text.ParserCombinators.Parsec.Error (ParseError, errorPos, errorMessages, showErrorMessages)
 import Text.ParserCombinators.Parsec.Pos   (incSourceLine, sourceName, sourceLine, sourceColumn)
-import Text.ParserCombinators.Parsec.Prim  (getPosition, token, parse, many)
-
+import Text.ParserCombinators.Parsec.Prim  ((<?>), GenParser, getInput, setInput, pzero,getPosition, token, parse, many)
 import Web.Routes.Base (decodePathInfo, encodePathInfo)
 import Web.Routes.Site (Site(..))
 
@@ -23,12 +21,23 @@ pToken :: tok -> (String -> Maybe a) -> URLParser a
 pToken msg f = do pos <- getPosition
                   token id (const $ incSourceLine pos 1) f
 
+-- | match on a specific string
 segment :: String -> URLParser String
 segment x = (pToken (const x) (\y -> if x == y then Just x else Nothing)) <?> x
 
+-- | match on any string
 anySegment :: URLParser String
 anySegment = pToken (const "any string") Just
 
+-- | apply a function to the remainder of the segments
+--
+-- useful if you want to just do normal pattern matching:
+-- >
+-- > foo ["foo", "bar"] = Right (Foo Bar)
+-- > foo ["baz"]        = Right Baz
+-- > foo _              = Left "parse error"
+-- 
+-- > patternParse foo
 patternParse :: ([String] -> Either String a) -> URLParser a
 patternParse p =
   do segs <- getInput
