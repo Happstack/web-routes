@@ -12,8 +12,16 @@ import Web.Routes.Base (decodePathInfo, encodePathInfo)
 import Web.Routes.Site (Site(..))
 
 -- this is not very efficient. Among other things, we need only consider the last 'n' characters of x where n == length y.
+-- CB - added length based cutoff
 stripOverlap :: (Eq a) => [a] -> [a] -> [a]
-stripOverlap x y = fromJust $ msum $ [ stripPrefix p y | p <- tails x]
+stripOverlap xs ys = fromJust $ msum $ [ stripPrefix p ys | p <- tails xs']
+    where xs' = drop ((length xs - length ys `max` 0)) xs
+
+stripOverlap' :: (Eq a) => [a] -> [a] -> [a]
+stripOverlap' x y = fromJust $ msum $ [ stripPrefix p y | p <- tails x]
+
+prop_stripOverlap :: [Int] -> [Int] -> Bool
+prop_stripOverlap xs ys = stripOverlap xs ys == stripOverlap' xs ys
 
 type URLParser a = GenParser String () a
 
