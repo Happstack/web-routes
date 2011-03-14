@@ -1,4 +1,4 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving, FlexibleInstances, TypeFamilies, PackageImports, FlexibleContexts, UndecidableInstances #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving, MultiParamTypeClasses, FlexibleInstances, TypeFamilies, PackageImports, FlexibleContexts, UndecidableInstances #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Web.Route.RouteT
@@ -15,7 +15,15 @@ module Web.Routes.RouteT where
 
 import Control.Applicative (Applicative((<*>), pure), Alternative((<|>), empty))
 import Control.Monad (MonadPlus(mzero, mplus))
+import Control.Monad.Cont(MonadCont(callCC))
+import Control.Monad.Error (MonadError(throwError, catchError))
 import Control.Monad.Fix (MonadFix(mfix))
+import Control.Monad.Reader(MonadReader(ask,local))
+import Control.Monad.RWS (MonadRWS)
+import Control.Monad.State(MonadState(get,put))
+import Control.Monad.Trans (MonadTrans(lift), MonadIO(liftIO))
+import Control.Monad.Writer(MonadWriter(listen, tell, pass))
+
 
 -- * RouteT Monad Transformer
 
@@ -64,8 +72,39 @@ instance (MonadPlus m, Monad (RouteT url m)) => MonadPlus (RouteT url m) where
     mzero       = liftRouteT mzero
     m `mplus` n = RouteT $ \ url -> unRouteT m url `mplus` unRouteT n url
 
+instance (MonadCont m) => MonadCont (RouteT url m) where
+    callCC f = RouteT $ \url ->
+        callCC $ \c ->
+        unRouteT (f (\a -> RouteT $ \_ -> c a)) url
+
+instance (MonadError e m) => MonadError e (RouteT url m) where
+  throwError = liftRouteT . throwError
+  catchError action handler = RouteT $ \f -> catchError (unRouteT action f) (\e -> unRouteT (handler e) f)
+
 instance (MonadFix m) => MonadFix (RouteT url m) where
     mfix f = RouteT $ \ url -> mfix $ \ a -> unRouteT (f a) url
+
+instance (MonadIO m) => MonadIO (RouteT url m) where  
+  liftIO = lift . liftIO
+
+instance (MonadReader r m) => MonadReader r (RouteT url m) where
+  ask   = liftRouteT ask
+  local f = mapRouteT (local f)
+
+instance (MonadRWS r w s m) => MonadRWS r w s (RouteT url m)  
+
+instance (MonadState s m) => MonadState s (RouteT url m) where  
+  get = liftRouteT get
+  put s = liftRouteT $ put s
+
+instance MonadTrans (RouteT url) where
+  lift = liftRouteT
+
+instance (MonadWriter w m) => MonadWriter w (RouteT url m) where
+  tell   w = liftRouteT $ tell w
+  listen m = mapRouteT listen m
+  pass   m = mapRouteT pass   m
+
 
 class ShowURL m where
     type URL m
