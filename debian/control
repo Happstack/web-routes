@@ -8,14 +8,16 @@ Build-Depends: debhelper (>= 7.0),
                cdbs,
                ghc6 (>= 6.8),
                ghc6-prof,
+               libghc6-mtl-prof,
                libghc6-network-prof,
                libghc6-parsec2-prof,
-               libghc6-utf8-string-prof
+               libghc6-utf8-string-prof (>= 0.3.6)
 Build-Depends-Indep: ghc6-doc,
                      haddock,
+                     libghc6-mtl-doc,
                      libghc6-network-doc,
                      libghc6-parsec2-doc,
-                     libghc6-utf8-string-doc
+                     libghc6-utf8-string-doc (>= 0.3.6)
 Standards-Version: 3.8.1
 
 Package: libghc6-web-routes-dev
