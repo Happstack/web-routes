@@ -1,3 +1,10 @@
+haskell-web-routes (0.24.2) unstable; urgency=low
+
+  * Require parsec3 in order to avoid situtation where some packages get
+    built with parsec2 and some with 3.
+
+ -- David Fox <dsf@seereason.com>  Thu, 09 Jun 2011 12:53:08 -0700
+
 haskell-web-routes (0.24.1) unstable; urgency=low
 
   * deprecated web-routes-mtl:Web.Routes.MTL and moved it all into
