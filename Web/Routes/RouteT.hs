@@ -31,10 +31,13 @@ type Link = String
 
 -- |monad transformer for generating URLs
 newtype RouteT url m a = RouteT { unRouteT :: (url -> [(String, String)] -> Link) -> m a }
---     deriving (Functor, Monad, MonadFix, MonadPlus) -- , MonadIO, MonadTrans, MonadReader (url -> Link))
 
-runRouteT :: RouteT url m a -> (url -> [(String, String)] -> Link) -> m a
-runRouteT = unRouteT
+-- | convert a 'RouteT' based route handler to a handler that can be used with the 'Site' type
+--
+-- NOTE: this function used to be the same as 'unRouteT'. If you want the old behavior, just call 'unRouteT'.
+runRouteT :: (url -> RouteT url m a) 
+          -> ((url -> [(String, String)] -> String) -> url -> m a)
+runRouteT r = \f u -> (unRouteT (r u)) f
 
 -- | Transform the computation inside a @RouteT@.
 mapRouteT :: (m a -> n b) -> RouteT url m a -> RouteT url n b

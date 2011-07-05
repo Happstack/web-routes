@@ -1,3 +1,10 @@
+haskell-web-routes (0.25.1) unstable; urgency=low
+
+  * Change 'runRouteT' to be a useful for converting a 'Route' into
+    something that can be used with 'Site'
+
+ -- Jeremy Shaw <jeremy@seereason.com>  Tue, 05 Jul 2011 14:11:27 -0500
+
 haskell-web-routes (0.24.2) unstable; urgency=low
 
   * Require parsec3 in order to avoid situtation where some packages get
