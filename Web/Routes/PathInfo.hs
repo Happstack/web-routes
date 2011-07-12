@@ -47,8 +47,13 @@ patternParse p =
             return r
        (Left err) -> fail err
        
+-- | run a 'URLParser' on a list of path segments
+--
+-- returns @Left "parse error"@ on failure.
+--
+-- returns @Right a@ on success
 parseSegments :: URLParser a -> [String] -> Either String a
-parseSegments p segments = 
+parseSegments p segments =
   case parse p (show segments) segments of
     (Left e)  -> Left (showParseError e)
     (Right r) -> Right r
@@ -95,12 +100,21 @@ p2u p =
       fixReply ss (Ok a (State "" sPos sUser) e) = (Ok a (State ss sPos sUser) e) 
       fixReply ss (Ok a (State s sPos sUser) e) = (Ok a (State (s:ss) sPos sUser) e) 
 -}
-class PathInfo a where
-  toPathSegments :: a -> [String]
-  fromPathSegments :: URLParser a
 
-toPathInfo :: (PathInfo u) => u -> String
+class PathInfo url where
+  toPathSegments :: url -> [String]
+  fromPathSegments :: URLParser url
+
+-- |convert url into the path info portion of a URL
+toPathInfo :: (PathInfo url) => url -> String
 toPathInfo = ('/' :) . flip encodePathInfo [] . toPathSegments
+
+-- |convert url + params into the path info portion of a URL + a query string
+toPathInfoParams :: (PathInfo url) =>
+                    url -- ^ url
+                 -> [(String, String)] -- ^ query string parameter
+                 -> String
+toPathInfoParams url params = ('/' :) . flip encodePathInfo params . toPathSegments $ url
 
 -- should this fail if not all the input was consumed?  
 --
@@ -115,20 +129,30 @@ toPathInfo = ('/' :) . flip encodePathInfo [] . toPathSegments
 --
 -- However, if the pathInfo was prepend with http://example.org/ with
 -- a trailing slash, then things might not line up.
-fromPathInfo :: (PathInfo u) => String -> Either String u
-fromPathInfo pi = 
-  parseSegments fromPathSegments (decodePathInfo $ dropSlash pi) 
+
+-- | parse a 'String' into 'url' using 'PathInfo'. 
+-- 
+-- returns @Left "parse error"@ on failure
+--
+-- returns @Right url@ on success
+fromPathInfo :: (PathInfo url) => String -> Either String url
+fromPathInfo pi =
+  parseSegments fromPathSegments (decodePathInfo $ dropSlash pi)
   where
     dropSlash ('/':rs) = rs
     dropSlash x        = x
-    
-mkSitePI :: (PathInfo url) => ((url -> [(String, String)] -> String) -> url -> a) -> Site url a
+
+-- | turn a routing function into a 'Site' value using the 'PathInfo' class
+mkSitePI :: (PathInfo url) =>
+            ((url -> [(String, String)] -> String) -> url -> a) -- ^ a routing function
+         -> Site url a
 mkSitePI handler =
   Site { handleSite         = handler
        , formatPathSegments = (\x -> (x, [])) . toPathSegments
        , parsePathSegments  = parseSegments fromPathSegments
        }
 
+-- | show Parsec 'ParseError' using terms that relevant to parsing a url
 showParseError :: ParseError -> String
 showParseError pErr =
   let pos    = errorPos pErr
@@ -138,26 +162,26 @@ showParseError pErr =
 
 -- it's instances all the way down
 
-instance PathInfo [String] where  
+instance PathInfo [String] where
   toPathSegments = id
   fromPathSegments = many anySegment
-  
+
 instance PathInfo String where
   toPathSegments = (:[])
   fromPathSegments = anySegment
-  
-instance PathInfo Int where  
+
+instance PathInfo Int where
   toPathSegments i = [show i]
   fromPathSegments = pToken (const "int") checkInt
-   where checkInt str = 
+   where checkInt str =
            case reads str of
              [(n,[])] -> Just n
              _ ->        Nothing
-             
-instance PathInfo Integer where  
+
+instance PathInfo Integer where
   toPathSegments i = [show i]
   fromPathSegments = pToken (const "integer") checkInteger
-   where checkInteger str = 
+   where checkInteger str =
            case reads str of
              [(n,[])] -> Just n
-             _ ->        Nothing             
+             _ ->        Nothing

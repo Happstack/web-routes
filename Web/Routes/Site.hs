@@ -61,4 +61,4 @@ runSite approot site pathInfo =
   where
     go url qs =
         let (pieces, qs') = formatPathSegments site url
-         in approot ++ encodePathInfo pieces (qs ++ qs')
+        in approot ++ encodePathInfo pieces (qs ++ qs')
