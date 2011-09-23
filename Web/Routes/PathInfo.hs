@@ -15,14 +15,14 @@ module Web.Routes.PathInfo
     , showParseError
     ) where
 
-import Control.Applicative (pure, (*>),(<*>),(<*))
+import Control.Applicative ((<*))
 import Control.Monad (msum)
 import Data.List (stripPrefix, tails)
 import Data.Maybe (fromJust)
 import Text.ParserCombinators.Parsec.Combinator (notFollowedBy)
 import Text.ParserCombinators.Parsec.Error (ParseError, errorPos, errorMessages, showErrorMessages)
 import Text.ParserCombinators.Parsec.Pos   (incSourceLine, sourceName, sourceLine, sourceColumn)
-import Text.ParserCombinators.Parsec.Prim  ((<?>), GenParser, getInput, setInput, pzero,getPosition, token, parse, many)
+import Text.ParserCombinators.Parsec.Prim  ((<?>), GenParser, getInput, setInput, getPosition, token, parse, many)
 import Web.Routes.Base (decodePathInfo, encodePathInfo)
 import Web.Routes.Site (Site(..))
 

@@ -1,7 +1,5 @@
 module Web.Routes.Site where
 
-import Data.Maybe (isJust, fromJust)
-import Data.Monoid (Monoid(mappend))
 import Web.Routes.Base (decodePathInfo, encodePathInfo)
 
 {-|
