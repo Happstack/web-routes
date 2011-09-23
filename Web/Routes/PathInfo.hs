@@ -1,10 +1,25 @@
 {-# LANGUAGE FlexibleInstances, TypeSynonymInstances #-}
-module Web.Routes.PathInfo where
+module Web.Routes.PathInfo
+    ( stripOverlap
+    , URLParser
+    , pToken
+    , segment
+    , anySegment
+    , patternParse
+    , parseSegments
+    , PathInfo(..)
+    , toPathInfo
+    , toPathInfoParams
+    , fromPathInfo
+    , mkSitePI
+    , showParseError
+    ) where
 
-import Control.Applicative (pure, (*>),(<*>))
+import Control.Applicative (pure, (*>),(<*>),(<*))
 import Control.Monad (msum)
 import Data.List (stripPrefix, tails)
 import Data.Maybe (fromJust)
+import Text.ParserCombinators.Parsec.Combinator (notFollowedBy)
 import Text.ParserCombinators.Parsec.Error (ParseError, errorPos, errorMessages, showErrorMessages)
 import Text.ParserCombinators.Parsec.Pos   (incSourceLine, sourceName, sourceLine, sourceColumn)
 import Text.ParserCombinators.Parsec.Prim  ((<?>), GenParser, getInput, setInput, pzero,getPosition, token, parse, many)
@@ -28,6 +43,10 @@ segment x = (pToken (const x) (\y -> if x == y then Just x else Nothing)) <?> x
 -- | match on any string
 anySegment :: URLParser String
 anySegment = pToken (const "any string") Just
+
+-- | Only matches if all segments have been consumed
+eof :: URLParser ()
+eof = notFollowedBy anySegment <?> "end of input"
 
 -- | apply a function to the remainder of the segments
 --
@@ -54,7 +73,7 @@ patternParse p =
 -- returns @Right a@ on success
 parseSegments :: URLParser a -> [String] -> Either String a
 parseSegments p segments =
-  case parse p (show segments) segments of
+  case parse (p <* eof) (show segments) segments of
     (Left e)  -> Left (showParseError e)
     (Right r) -> Right r
 
