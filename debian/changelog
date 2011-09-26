@@ -1,3 +1,9 @@
+haskell-web-routes (0.25.3) unstable; urgency=low
+
+  * In Web.Routes.PathInfo require that all path segments are consumed
+
+ -- Jeremy Shaw <jeremy@seereason.com>  Sun, 25 Sep 2011 20:43:15 -0500
+
 haskell-web-routes (0.25.2) unstable; urgency=low
 
   * Added toPathInfoParams
