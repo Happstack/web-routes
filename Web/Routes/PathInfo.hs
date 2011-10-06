@@ -1,7 +1,9 @@
 {-# LANGUAGE FlexibleInstances, TypeSynonymInstances #-}
 module Web.Routes.PathInfo
-    ( -- stripOverlap
-      URLParser
+    ( stripOverlap
+    , stripOverlapBS
+    , stripOverlapText
+    , URLParser
     , pToken
     , segment
     , anySegment
@@ -20,8 +22,8 @@ import Control.Applicative ((<$>), (<*))
 import Control.Monad (msum)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
-import Data.List (stripPrefix, tails)
-import Data.Text as Text (Text, pack, unpack, null)
+import Data.List as List (stripPrefix, tails)
+import Data.Text as Text (Text, pack, unpack, null, tails, stripPrefix)
 import Data.Text.Encoding (decodeUtf8)
 import Data.Text.Read (decimal)
 import Data.Maybe (fromJust)
@@ -33,11 +35,21 @@ import Text.ParserCombinators.Parsec.Prim  ((<?>), GenParser, getInput, setInput
 import Web.Routes.Base (decodePathInfo, encodePathInfo)
 import Web.Routes.Site (Site(..))
 
-{-
 -- this is not very efficient. Among other things, we need only consider the last 'n' characters of x where n == length y.
 stripOverlap :: (Eq a) => [a] -> [a] -> [a]
-stripOverlap x y = fromJust $ msum $ [ stripPrefix p y | p <- tails x]
--}
+stripOverlap x y = fromJust $ msum $ [ List.stripPrefix p y | p <- List.tails x]
+
+stripOverlapText :: Text -> Text -> Text
+stripOverlapText x y = fromJust $ msum $ [ Text.stripPrefix p y | p <- Text.tails x ]
+
+stripOverlapBS :: B.ByteString -> B.ByteString -> B.ByteString
+stripOverlapBS x y = fromJust $ msum $ [ stripPrefix p y | p <- B.tails x ] -- fromJust will never fail
+    where
+      stripPrefix :: B.ByteString -> B.ByteString -> Maybe B.ByteString
+      stripPrefix x y
+          | x `B.isPrefixOf` y = Just $ B.drop (B.length x) y
+          | otherwise        = Nothing
+
 
 type URLParser a = GenParser Text () a
 
