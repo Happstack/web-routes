@@ -1,3 +1,10 @@
+haskell-web-routes (0.26.1) unstable; urgency=low
+
+  * String -> Text
+  * ShowURL -> MonadRoute
+
+ -- Jeremy Shaw <jeremy@seereason.com>  Wed, 05 Oct 2011 16:34:26 -0500
+
 haskell-web-routes (0.25.3) unstable; urgency=low
 
   * In Web.Routes.PathInfo require that all path segments are consumed

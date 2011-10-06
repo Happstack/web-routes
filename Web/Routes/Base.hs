@@ -16,9 +16,14 @@ module Web.Routes.Base
        , decodePathInfo
        ) where
 
+import Blaze.ByteString.Builder (Builder, toByteString)
 import Codec.Binary.UTF8.String (encodeString, decodeString)
+import Data.ByteString (ByteString)
 import Data.List (intercalate, intersperse)
+import Data.Text          (Text)
+import Data.Text.Encoding as Text (encodeUtf8, decodeUtf8)
 import Network.URI
+import Network.HTTP.Types (encodePath, decodePathSegments, queryTextToQuery)
 
 {-
 
@@ -240,8 +245,15 @@ For example:
 \"%D7%A9%D7%9C%D7%95%D7%9D\"
 
 -}
-encodePathInfo :: [String] -> [(String, String)] -> String
-encodePathInfo pieces qs = 
+encodePathInfo :: [Text] -> [(Text, Maybe Text)] -> Text
+encodePathInfo segments qs =
+    Text.decodeUtf8 $ toByteString $ encodePathInfoUtf8 segments qs
+
+encodePathInfoUtf8 :: [Text] -> [(Text, Maybe Text)] -> Builder
+encodePathInfoUtf8 segments qs = encodePath segments (queryTextToQuery qs)
+
+encodePathInfoString :: [String] -> [(String, String)] -> String
+encodePathInfoString pieces qs = 
   let x = map encodeString  `o` -- utf-8 encode the data characters in path components (we have not added any delimiters yet)
           map (escapeURIString (\c -> isUnreserved c || c `elem` ":@&=+$,"))   `o` -- percent encode the characters
           map (\str -> case str of "." -> "%2E" ; ".." -> "%2E%2E" ; _ -> str) `o` -- encode . and ..
@@ -278,9 +290,13 @@ passing it to this function. For example:
 
 [\"\"]
 
+Note that while function accepts a 'Text' value, it is expected that 'Text' will only contain the subset of characters which are allowed to appear in a URL.
 -}
-decodePathInfo :: String -> [String]
-decodePathInfo =
+decodePathInfo :: ByteString -> [Text]
+decodePathInfo = decodePathSegments
+
+decodePathInfoString :: String -> [String]
+decodePathInfoString =
   splitPaths         `o` -- split path on delimiters
   map unEscapeString `o` -- decode any percent encoded characters
   map decodeString       -- decode octets

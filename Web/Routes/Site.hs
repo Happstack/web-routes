@@ -1,5 +1,8 @@
 module Web.Routes.Site where
 
+import Data.ByteString
+import Data.Monoid
+import Data.Text (Text)
 import Web.Routes.Base (decodePathInfo, encodePathInfo)
 
 {-|
@@ -29,11 +32,11 @@ data Site url a
                Well behaving applications should use this function to
                generating all internal URLs.
            -}
-             handleSite         :: (url -> [(String, String)] -> String) -> url -> a
+             handleSite         :: (url -> [(Text, Maybe Text)] -> Text) -> url -> a
            -- | This function must be the inverse of 'parsePathSegments'.
-           , formatPathSegments :: url -> ([String], [(String, String)])
+           , formatPathSegments :: url -> ([Text], [(Text, Maybe Text)])
            -- | This function must be the inverse of 'formatPathSegments'.
-           , parsePathSegments  :: [String] -> Either String url
+           , parsePathSegments  :: [Text] -> Either String url
            }
 
 -- | Override the \"default\" URL, ie the result of 'parsePathSegments' [].
@@ -48,9 +51,9 @@ instance Functor (Site url) where
   fmap f site = site { handleSite = \showFn u -> f (handleSite site showFn u) }
 
 -- | Retrieve the application to handle a given request.
-runSite :: String -- ^ application root, with trailing slash
+runSite :: Text -- ^ application root, with trailing slash
         -> Site url a
-        -> String -- ^ path info, leading slash stripped
+        -> ByteString -- ^ path info, leading slash stripped
         -> (Either String a)
 runSite approot site pathInfo =
     case parsePathSegments site $ decodePathInfo pathInfo of
@@ -59,4 +62,4 @@ runSite approot site pathInfo =
   where
     go url qs =
         let (pieces, qs') = formatPathSegments site url
-        in approot ++ encodePathInfo pieces (qs ++ qs')
+        in approot `mappend` (encodePathInfo pieces (qs ++ qs'))

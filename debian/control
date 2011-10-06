@@ -8,15 +8,21 @@ Build-Depends: debhelper (>= 7.0),
                cdbs,
                ghc (>= 6.8),
                ghc-prof,
+               libghc-blaze-builder-prof,
+               libghc-http-types-prof,
                libghc-mtl-prof,
                libghc-network-prof,
                libghc-parsec3-prof,
+               libghc-text-prof,
                libghc-utf8-string-prof (>= 0.3.6)
 Build-Depends-Indep: ghc-doc,
                      haddock,
+                     libghc-blaze-builder-doc,
+                     libghc-http-types-doc,
                      libghc-mtl-doc,
                      libghc-network-doc,
                      libghc-parsec3-doc,
+                     libghc-text-doc,
                      libghc-utf8-string-doc (>= 0.3.6)
 Standards-Version: 3.8.1
 

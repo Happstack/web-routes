@@ -23,20 +23,23 @@ import Control.Monad.RWS (MonadRWS)
 import Control.Monad.State(MonadState(get,put))
 import Control.Monad.Trans (MonadTrans(lift), MonadIO(liftIO))
 import Control.Monad.Writer(MonadWriter(listen, tell, pass))
+import Data.Text (Text)
 
 
 -- * RouteT Monad Transformer
 
-type Link = String
-
 -- |monad transformer for generating URLs
-newtype RouteT url m a = RouteT { unRouteT :: (url -> [(String, String)] -> Link) -> m a }
+newtype RouteT url m a = RouteT { unRouteT :: (url -> [(Text, Maybe Text)] -> Text) -> m a }
+
+class (Monad m) => MonadRoute m where
+    type URL m
+    askRouteFn :: m (URL m -> [(Text, Maybe Text)] -> Text)
 
 -- | convert a 'RouteT' based route handler to a handler that can be used with the 'Site' type
 --
 -- NOTE: this function used to be the same as 'unRouteT'. If you want the old behavior, just call 'unRouteT'.
 runRouteT :: (url -> RouteT url m a) 
-          -> ((url -> [(String, String)] -> String) -> url -> m a)
+          -> ((url -> [(Text, Maybe Text)] -> Text) -> url -> m a)
 runRouteT r = \f u -> (unRouteT (r u)) f
 
 -- | Transform the computation inside a @RouteT@.
@@ -44,13 +47,13 @@ mapRouteT :: (m a -> n b) -> RouteT url m a -> RouteT url n b
 mapRouteT f (RouteT m) = RouteT $ f . m
 
 -- | Execute a computation in a modified environment
-withRouteT :: ((url' -> [(String, String)] -> Link) -> (url -> [(String, String)] -> Link)) -> RouteT url m a -> RouteT url' m a
+withRouteT :: ((url' -> [(Text, Maybe Text)] -> Text) -> (url -> [(Text, Maybe Text)] -> Text)) -> RouteT url m a -> RouteT url' m a
 withRouteT f (RouteT m) = RouteT $ m . f
 
 liftRouteT :: m a -> RouteT url m a
 liftRouteT m = RouteT (const m)
 
-askRouteT :: (Monad m) => RouteT url m (url -> [(String, String)] -> String)
+askRouteT :: (Monad m) => RouteT url m (url -> [(Text, Maybe Text)] -> Text)
 askRouteT = RouteT return
 
 instance (Functor m) => Functor (RouteT url m) where
@@ -108,26 +111,21 @@ instance (MonadWriter w m) => MonadWriter w (RouteT url m) where
   listen m = mapRouteT listen m
   pass   m = mapRouteT pass   m
 
-
-class ShowURL m where
-    type URL m
-    showURLParams :: (URL m) -> [(String, String)] -> m Link -- ^ convert a URL value and a parameter list into a Link (aka, a String)
-
-instance (Monad m) => ShowURL (RouteT url m) where
+instance (Monad m) => MonadRoute (RouteT url m) where
     type URL (RouteT url m) = url
-    showURLParams url params =
-        do showF <- askRouteT
-           return (showF url params)
+    askRouteFn = askRouteT
 
--- | convert a URL value into a Link (aka, a String) using a null parameter list.
-showURL :: ShowURL m => URL m -> m Link  
-showURL url = showURLParams url []
+showURL :: (MonadRoute m) => URL m -> m Text
+showURL url = 
+    do showFn <- askRouteFn
+       return (showFn url [])
 
--- |used to embed a RouteT into a larger parent url
-nestURL :: (Monad m) => (url2 -> url1) -> RouteT url2 m a -> RouteT url1 m a
-nestURL b = withRouteT (. b)
+showURLParams  :: (MonadRoute m) => URL m -> [(Text, Maybe Text)] -> m Text
+showURLParams url params = 
+    do showFn <- askRouteFn
+       return (showFn url params)
 
-crossURL :: (Monad m) => (url2 -> url1) -> [(String, String)] -> RouteT url1 m (url2 -> Link)
-crossURL f params = 
-    do showF <- askRouteT
-       return $ \url2 -> showF (f url2) params
+nestURL :: (MonadRoute m) => (url -> URL m) -> RouteT url m a -> m a
+nestURL transform (RouteT r) =
+    do showFn <- askRouteFn
+       r (\url params -> showFn (transform url) params)
