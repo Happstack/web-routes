@@ -125,7 +125,7 @@ showURLParams url params =
     do showFn <- askRouteFn
        return (showFn url params)
 
-nestURL :: (MonadRoute m) => (url -> URL m) -> RouteT url m a -> m a
+nestURL :: (url1 -> url2) -> RouteT url1 m a -> RouteT url2 m a
 nestURL transform (RouteT r) =
-    do showFn <- askRouteFn
-       r (\url params -> showFn (transform url) params)
+    do RouteT $ \showFn ->
+           r (\url params -> showFn (transform url) params)

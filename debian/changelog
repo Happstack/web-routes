@@ -1,3 +1,9 @@
+haskell-web-routes (0.26.2) unstable; urgency=low
+
+  * Fixed type signature for nestURL
+
+ -- Jeremy Shaw <jeremy@seereason.com>  Fri, 07 Oct 2011 21:46:37 -0500
+
 haskell-web-routes (0.26.1) unstable; urgency=low
 
   * String -> Text
