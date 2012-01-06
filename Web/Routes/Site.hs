@@ -58,8 +58,8 @@ runSite :: Text -- ^ application root, with trailing slash
 runSite approot site pathInfo =
     case parsePathSegments site $ decodePathInfo pathInfo of
         (Left errs) -> (Left errs)
-        (Right url) -> Right $ handleSite site go url
+        (Right url) -> Right $ handleSite site showFn url
   where
-    go url qs =
+    showFn url qs =
         let (pieces, qs') = formatPathSegments site url
         in approot `mappend` (encodePathInfo pieces (qs ++ qs'))
