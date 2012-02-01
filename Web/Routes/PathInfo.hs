@@ -25,7 +25,7 @@ import qualified Data.ByteString.Char8 as B
 import Data.List as List (stripPrefix, tails)
 import Data.Text as Text (Text, pack, unpack, null, tails, stripPrefix)
 import Data.Text.Encoding (decodeUtf8)
-import Data.Text.Read (decimal)
+import Data.Text.Read (decimal, signed)
 import Data.Maybe (fromJust)
 import Network.HTTP.Types 
 import Text.ParserCombinators.Parsec.Combinator (notFollowedBy)
@@ -229,7 +229,7 @@ instance PathInfo Int where
   toPathSegments i = [pack $ show i]
   fromPathSegments = pToken (const "Int") checkInt
    where checkInt txt =
-           case decimal txt of
+           case signed decimal txt of
              (Left e) -> Nothing
              (Right (n, r))
                  | Text.null r -> Just n
@@ -239,7 +239,7 @@ instance PathInfo Integer where
   toPathSegments i = [pack $ show i]
   fromPathSegments = pToken (const "Integer") checkInt
    where checkInt txt =
-           case decimal txt of
+           case signed decimal txt of
              (Left e) -> Nothing
              (Right (n, r))
                  | Text.null r -> Just n
