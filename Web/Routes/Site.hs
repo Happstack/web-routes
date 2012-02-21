@@ -51,12 +51,14 @@ instance Functor (Site url) where
   fmap f site = site { handleSite = \showFn u -> f (handleSite site showFn u) }
 
 -- | Retrieve the application to handle a given request.
+--
+-- NOTE: use 'decodePathInfo' to convert a 'ByteString' url to a properly decoded list of path segments
 runSite :: Text -- ^ application root, with trailing slash
         -> Site url a
-        -> ByteString -- ^ path info, leading slash stripped
+        -> [Text] -- ^ path info, (call 'decodePathInfo' on path with leading slash stripped)
         -> (Either String a)
 runSite approot site pathInfo =
-    case parsePathSegments site $ decodePathInfo pathInfo of
+    case parsePathSegments site pathInfo of
         (Left errs) -> (Left errs)
         (Right url) -> Right $ handleSite site showFn url
   where
