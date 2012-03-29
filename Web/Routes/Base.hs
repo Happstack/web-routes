@@ -253,7 +253,7 @@ encodePathInfoUtf8 :: [Text] -> [(Text, Maybe Text)] -> Builder
 encodePathInfoUtf8 segments qs = encodePath segments (queryTextToQuery qs)
 
 encodePathInfoString :: [String] -> [(String, String)] -> String
-encodePathInfoString pieces qs = 
+encodePathInfoString pieces qs =
   let x = map encodeString  `o` -- utf-8 encode the data characters in path components (we have not added any delimiters yet)
           map (escapeURIString (\c -> isUnreserved c || c `elem` ":@&=+$,"))   `o` -- percent encode the characters
           map (\str -> case str of "." -> "%2E" ; ".." -> "%2E%2E" ; _ -> str) `o` -- encode . and ..
@@ -261,7 +261,7 @@ encodePathInfoString pieces qs =
       y = paramsToQueryString qs
    in x pieces ++ y
     where
-      -- reverse composition 
+      -- reverse composition
       o :: (a -> b) -> (b -> c) -> a -> c
       o = flip (.)
 
