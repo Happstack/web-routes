@@ -38,7 +38,7 @@ class (Monad m) => MonadRoute m where
 -- | convert a 'RouteT' based route handler to a handler that can be used with the 'Site' type
 --
 -- NOTE: this function used to be the same as 'unRouteT'. If you want the old behavior, just call 'unRouteT'.
-runRouteT :: (url -> RouteT url m a) 
+runRouteT :: (url -> RouteT url m a)
           -> ((url -> [(Text, Maybe Text)] -> Text) -> url -> m a)
 runRouteT r = \f u -> (unRouteT (r u)) f
 
@@ -59,7 +59,7 @@ askRouteT = RouteT return
 instance (Functor m) => Functor (RouteT url m) where
   fmap f = mapRouteT (fmap f)
 
-instance (Applicative m) => Applicative (RouteT url m) where  
+instance (Applicative m) => Applicative (RouteT url m) where
   pure = liftRouteT . pure
   f <*> v = RouteT $ \ url -> unRouteT f url <*> unRouteT v url
 
@@ -90,16 +90,16 @@ instance (MonadError e m) => MonadError e (RouteT url m) where
 instance (MonadFix m) => MonadFix (RouteT url m) where
     mfix f = RouteT $ \ url -> mfix $ \ a -> unRouteT (f a) url
 
-instance (MonadIO m) => MonadIO (RouteT url m) where  
+instance (MonadIO m) => MonadIO (RouteT url m) where
   liftIO = lift . liftIO
 
 instance (MonadReader r m) => MonadReader r (RouteT url m) where
   ask   = liftRouteT ask
   local f = mapRouteT (local f)
 
-instance (MonadRWS r w s m) => MonadRWS r w s (RouteT url m)  
+instance (MonadRWS r w s m) => MonadRWS r w s (RouteT url m)
 
-instance (MonadState s m) => MonadState s (RouteT url m) where  
+instance (MonadState s m) => MonadState s (RouteT url m) where
   get = liftRouteT get
   put s = liftRouteT $ put s
 
@@ -116,12 +116,12 @@ instance (Monad m) => MonadRoute (RouteT url m) where
     askRouteFn = askRouteT
 
 showURL :: (MonadRoute m) => URL m -> m Text
-showURL url = 
+showURL url =
     do showFn <- askRouteFn
        return (showFn url [])
 
 showURLParams  :: (MonadRoute m) => URL m -> [(Text, Maybe Text)] -> m Text
-showURLParams url params = 
+showURLParams url params =
     do showFn <- askRouteFn
        return (showFn url params)
 
