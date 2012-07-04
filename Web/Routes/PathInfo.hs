@@ -27,7 +27,7 @@ import Data.Text as Text (Text, pack, unpack, null, tails, stripPrefix)
 import Data.Text.Encoding (decodeUtf8)
 import Data.Text.Read (decimal, signed)
 import Data.Maybe (fromJust)
-import Network.HTTP.Types 
+import Network.HTTP.Types
 import Text.ParserCombinators.Parsec.Combinator (notFollowedBy)
 import Text.ParserCombinators.Parsec.Error (ParseError, errorPos, errorMessages, showErrorMessages)
 import Text.ParserCombinators.Parsec.Pos   (incSourceLine, sourceName, sourceLine, sourceColumn)
@@ -76,7 +76,7 @@ eof = notFollowedBy anySegment <?> "end of input"
 -- > foo ["foo", "bar"] = Right (Foo Bar)
 -- > foo ["baz"]        = Right Baz
 -- > foo _              = Left "parse error"
--- 
+--
 -- > patternParse foo
 patternParse :: ([Text] -> Either String a) -> URLParser a
 patternParse p =
@@ -111,8 +111,8 @@ parseSegments p segments =
 This requires parsec 3, can't figure out how to do it in parsec 2 yet.
 
 p2u :: Parser a -> URLParser a
-p2u p = 
-  mkPT $ \state@(State sInput sPos sUser) -> 
+p2u p =
+  mkPT $ \state@(State sInput sPos sUser) ->
   case sInput of
     (s:ss) ->
        do r <- runParsecT p (State s sPos sUser)
@@ -121,22 +121,22 @@ p2u p =
     where
       fixReply :: [String] -> (Reply String u a) -> (Reply [String] u a)
       fixReply _ (Error err) = (Error err)
-      fixReply ss (Ok a (State "" sPos sUser) e) = (Ok a (State ss sPos sUser) e) 
-      fixReply ss (Ok a (State s sPos sUser) e) = (Ok a (State (s:ss) sPos sUser) e) 
+      fixReply ss (Ok a (State "" sPos sUser) e) = (Ok a (State ss sPos sUser) e)
+      fixReply ss (Ok a (State s sPos sUser) e) = (Ok a (State (s:ss) sPos sUser) e)
 -}
 
 {-
 p2u :: Parser a -> URLParser a
-p2u p = 
+p2u p =
   do (State sInput sPos sUser) <- getParserState
      case sInput of
        (s:ss) -> let r = runParser p () "" s
                  in case r of
                       (Left e) -> return e
 -}
-       
+
 {-
-  mkPT $ \state@(State sInput sPos sUser) -> 
+  mkPT $ \state@(State sInput sPos sUser) ->
   case sInput of
     (s:ss) ->
        do r <- runParsecT p (State s sPos sUser)
@@ -145,8 +145,8 @@ p2u p =
     where
       fixReply :: [String] -> (Reply String u a) -> (Reply [String] u a)
       fixReply _ (Error err) = (Error err)
-      fixReply ss (Ok a (State "" sPos sUser) e) = (Ok a (State ss sPos sUser) e) 
-      fixReply ss (Ok a (State s sPos sUser) e) = (Ok a (State (s:ss) sPos sUser) e) 
+      fixReply ss (Ok a (State "" sPos sUser) e) = (Ok a (State ss sPos sUser) e)
+      fixReply ss (Ok a (State s sPos sUser) e) = (Ok a (State (s:ss) sPos sUser) e)
 -}
 
 class PathInfo url where
@@ -168,7 +168,7 @@ toPathInfoParams :: (PathInfo url) =>
                  -> Text
 toPathInfoParams url params = encodePathInfo (toPathSegments url) params
 
--- should this fail if not all the input was consumed?  
+-- should this fail if not all the input was consumed?
 --
 -- in theory we
 -- require the pathInfo to have the initial '/', but this code will
@@ -182,8 +182,8 @@ toPathInfoParams url params = encodePathInfo (toPathSegments url) params
 -- However, if the pathInfo was prepend with http://example.org/ with
 -- a trailing slash, then things might not line up.
 
--- | parse a 'String' into 'url' using 'PathInfo'. 
--- 
+-- | parse a 'String' into 'url' using 'PathInfo'.
+--
 -- returns @Left "parse error"@ on failure
 --
 -- returns @Right url@ on success
@@ -193,7 +193,7 @@ fromPathInfo pi =
   parseSegments fromPathSegments (decodePathInfo $ dropSlash pi)
   where
     dropSlash s =
-        if ((B.pack "/") `B.isPrefixOf` s) 
+        if ((B.singleton '/') `B.isPrefixOf` s)
         then B.tail s
         else s
 
