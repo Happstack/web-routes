@@ -34,4 +34,4 @@ Library
 
 source-repository head
     type:     darcs
-    location: http://src.seereason.com/web-routes/
+    location: http://hub.darcs.net/stepcut/web-routes
