@@ -21,6 +21,7 @@ module Web.Routes.PathInfo
     , mkSitePI
     , showParseError
 #if __GLASGOW_HASKELL__ > 702
+    -- * Re-exported for convenience
     , Generic
 #endif
     ) where
@@ -210,6 +211,32 @@ instance PathInfo a => GPathInfo (K1 i a) where
 
 #endif
 
+-- | Simple parsing and rendering for a type to and from URL path segments.
+--
+-- If you're using GHC 7.2 or later, you can use @DeriveGeneric@ to derive
+-- instances of this class:
+--
+-- > {-# LANGUAGE DeriveGeneric #-}
+-- > data Sitemap = Home | BlogPost Int deriving Generic
+-- > instance PathInfo Sitemap
+--
+-- This results in the following instance:
+--
+-- > instance PathInfo Sitemap where
+-- >     toPathSegments Home = ["home"]
+-- >     toPathSegments (BlogPost x) = "blog-post" : toPathSegments x
+-- >     fromPathSegments = Home <$ segment "home"
+-- >                    <|> BlogPost <$ segment "blog-post" <*> fromPathSegments
+--
+-- And here it is in action:
+--
+-- >>> toPathInfo (BlogPost 123)
+-- "/blog-post/123"
+-- >>> fromPathInfo "/blog-post/123" :: Either String Sitemap
+-- Right (BlogPost 123)
+--
+-- To instead derive instances using @TemplateHaskell@, see
+-- <http://hackage.haskell.org/package/web-routes-th web-routes-th>.
 class PathInfo url where
   toPathSegments :: url -> [Text]
   fromPathSegments :: URLParser url
