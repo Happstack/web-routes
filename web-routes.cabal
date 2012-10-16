@@ -34,6 +34,8 @@ Library
                           network >= 2.2 && < 2.4,
                           text == 0.11.*,
                           utf8-string >= 0.3 && < 0.4
+        if impl(ghc >= 7.2)
+          Build-Depends:  ghc-prim
         Exposed-Modules:  Web.Routes
                           Web.Routes.Base
                           Web.Routes.PathInfo

@@ -1,4 +1,9 @@
-{-# LANGUAGE FlexibleInstances, TypeSynonymInstances #-}
+{-# LANGUAGE CPP, FlexibleInstances, TypeSynonymInstances #-}
+
+#if __GLASGOW_HASKELL__ > 702
+{-# LANGUAGE DefaultSignatures, OverloadedStrings, TypeOperators #-}
+#endif
+
 module Web.Routes.PathInfo
     ( stripOverlap
     , stripOverlapBS
@@ -15,6 +20,9 @@ module Web.Routes.PathInfo
     , fromPathInfo
     , mkSitePI
     , showParseError
+#if __GLASGOW_HASKELL__ > 702
+    , Generic
+#endif
     ) where
 
 import Blaze.ByteString.Builder (Builder, toByteString)
@@ -34,6 +42,11 @@ import Text.ParserCombinators.Parsec.Pos   (incSourceLine, sourceName, sourceLin
 import Text.ParserCombinators.Parsec.Prim  ((<?>), GenParser, getInput, setInput, getPosition, token, parse, many)
 import Web.Routes.Base (decodePathInfo, encodePathInfo)
 import Web.Routes.Site (Site(..))
+
+#if __GLASGOW_HASKELL__ > 702
+import Control.Applicative ((<$), (<*>), (<|>), pure)
+import GHC.Generics
+#endif
 
 -- this is not very efficient. Among other things, we need only consider the last 'n' characters of x where n == length y.
 stripOverlap :: (Eq a) => [a] -> [a] -> [a]
@@ -149,9 +162,46 @@ p2u p =
       fixReply ss (Ok a (State s sPos sUser) e) = (Ok a (State (s:ss) sPos sUser) e)
 -}
 
+#if __GLASGOW_HASKELL__ > 702
+
+class GPathInfo f where
+  gtoPathSegments :: f url -> [Text]
+  gfromPathSegments :: URLParser (f url)
+
+instance GPathInfo U1 where
+  gtoPathSegments U1 = []
+  gfromPathSegments = pure U1
+
+instance GPathInfo a => GPathInfo (M1 i c a) where
+  gtoPathSegments = gtoPathSegments . unM1
+  gfromPathSegments = M1 <$> gfromPathSegments
+
+instance (GPathInfo a, GPathInfo b) => GPathInfo (a :*: b) where
+  gtoPathSegments (a :*: b) = gtoPathSegments a ++ gtoPathSegments b
+  gfromPathSegments = (:*:) <$> gfromPathSegments <*> gfromPathSegments
+
+instance (GPathInfo a, GPathInfo b) => GPathInfo (a :+: b) where
+  gtoPathSegments (L1 x) = "0" : gtoPathSegments x
+  gtoPathSegments (R1 x) = "1" : gtoPathSegments x
+  gfromPathSegments = L1 <$ segment "0" <*> gfromPathSegments
+                  <|> R1 <$ segment "1" <*> gfromPathSegments
+
+instance PathInfo a => GPathInfo (K1 i a) where
+  gtoPathSegments = toPathSegments . unK1
+  gfromPathSegments = K1 <$> fromPathSegments
+
+#endif
+
 class PathInfo url where
   toPathSegments :: url -> [Text]
   fromPathSegments :: URLParser url
+
+#if __GLASGOW_HASKELL__ > 702
+  default toPathSegments :: (Generic url, GPathInfo (Rep url)) => url -> [Text]
+  toPathSegments = gtoPathSegments . from
+  default fromPathSegments :: (Generic url, GPathInfo (Rep url)) => URLParser url
+  fromPathSegments = to <$> gfromPathSegments
+#endif
 
 -- |convert url into the path info portion of a URL
 toPathInfo :: (PathInfo url) => url -> Text
