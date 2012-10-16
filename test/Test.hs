@@ -26,13 +26,13 @@ prop_PathInfo_isomorphism = pathInfoInverse_prop
 
 case_toPathInfo :: Assertion
 case_toPathInfo =
-    do toPathInfo Home @?= "/0"
-       toPathInfo (Article 0) @?= "/1/0"
+    do toPathInfo Home @?= "/home"
+       toPathInfo (Article 0) @?= "/article/0"
 
 case_fromPathInfo :: Assertion
 case_fromPathInfo =
-    do fromPathInfo "/0" @?= Right Home
-       fromPathInfo "/1/0" @?= Right (Article 0)
+    do fromPathInfo "/home" @?= Right Home
+       fromPathInfo "/article/0" @?= Right (Article 0)
        case fromPathInfo "/" :: Either String Sitemap of
          Left _ -> return ()
          url    -> assertFailure $ "expected a Left, but got: " ++ show url

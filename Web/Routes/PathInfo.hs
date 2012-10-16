@@ -1,7 +1,7 @@
 {-# LANGUAGE CPP, FlexibleInstances, TypeSynonymInstances #-}
 
 #if __GLASGOW_HASKELL__ > 702
-{-# LANGUAGE DefaultSignatures, OverloadedStrings, TypeOperators #-}
+{-# LANGUAGE DefaultSignatures, OverloadedStrings, ScopedTypeVariables, TypeOperators #-}
 #endif
 
 module Web.Routes.PathInfo
@@ -45,6 +45,9 @@ import Web.Routes.Site (Site(..))
 
 #if __GLASGOW_HASKELL__ > 702
 import Control.Applicative ((<$), (<*>), (<|>), pure)
+import Data.Char (toLower, isUpper)
+import Data.List (intercalate)
+import Data.List.Split (split, dropInitBlank, keepDelimsL, whenElt)
 import GHC.Generics
 #endif
 
@@ -164,6 +167,12 @@ p2u p =
 
 #if __GLASGOW_HASKELL__ > 702
 
+hyphenate :: String -> Text
+hyphenate =
+    pack . intercalate "-" . map (map toLower) . split splitter
+  where
+    splitter = dropInitBlank . keepDelimsL . whenElt $ isUpper
+
 class GPathInfo f where
   gtoPathSegments :: f url -> [Text]
   gfromPathSegments :: URLParser (f url)
@@ -172,19 +181,28 @@ instance GPathInfo U1 where
   gtoPathSegments U1 = []
   gfromPathSegments = pure U1
 
-instance GPathInfo a => GPathInfo (M1 i c a) where
+instance GPathInfo a => GPathInfo (D1 c a) where
   gtoPathSegments = gtoPathSegments . unM1
   gfromPathSegments = M1 <$> gfromPathSegments
+
+instance GPathInfo a => GPathInfo (S1 c a) where
+  gtoPathSegments = gtoPathSegments . unM1
+  gfromPathSegments = M1 <$> gfromPathSegments
+
+instance forall c a. (GPathInfo a, Constructor c) => GPathInfo (C1 c a) where
+  gtoPathSegments m@(M1 x) = (hyphenate . conName) m : gtoPathSegments x
+  gfromPathSegments = M1 <$ segment (hyphenate . conName $ (undefined :: C1 c a r))
+                         <*> gfromPathSegments
 
 instance (GPathInfo a, GPathInfo b) => GPathInfo (a :*: b) where
   gtoPathSegments (a :*: b) = gtoPathSegments a ++ gtoPathSegments b
   gfromPathSegments = (:*:) <$> gfromPathSegments <*> gfromPathSegments
 
 instance (GPathInfo a, GPathInfo b) => GPathInfo (a :+: b) where
-  gtoPathSegments (L1 x) = "0" : gtoPathSegments x
-  gtoPathSegments (R1 x) = "1" : gtoPathSegments x
-  gfromPathSegments = L1 <$ segment "0" <*> gfromPathSegments
-                  <|> R1 <$ segment "1" <*> gfromPathSegments
+  gtoPathSegments (L1 x) = gtoPathSegments x
+  gtoPathSegments (R1 x) = gtoPathSegments x
+  gfromPathSegments = L1 <$> gfromPathSegments
+                  <|> R1 <$> gfromPathSegments
 
 instance PathInfo a => GPathInfo (K1 i a) where
   gtoPathSegments = toPathSegments . unK1
