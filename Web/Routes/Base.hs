@@ -11,19 +11,18 @@
 --
 -- Conversions between raw pathinfos and decoded path segments.
 -----------------------------------------------------------------------------
-module Web.Routes.Base 
+module Web.Routes.Base
        ( encodePathInfo
        , decodePathInfo
        ) where
 
 import Blaze.ByteString.Builder (Builder, toByteString)
 import Codec.Binary.UTF8.String (encodeString, decodeString)
-import Data.ByteString (ByteString)
-import Data.List (intercalate, intersperse)
-import Data.Text          (Text)
-import Data.Text.Encoding as Text (encodeUtf8, decodeUtf8)
-import Network.URI
-import Network.HTTP.Types (encodePath, decodePathSegments, queryTextToQuery)
+import Data.ByteString          (ByteString)
+import Data.List                (intercalate, intersperse)
+import Data.Text                (Text)
+import Data.Text.Encoding       as Text (encodeUtf8, decodeUtf8)
+import Network.HTTP.Types       (encodePath, decodePathSegments, queryTextToQuery)
 
 {-
 
@@ -79,7 +78,7 @@ From FRC1808 - 2.1 URL Syntactic Components
 
    params      = param *( ";" param )
    param       = *( pchar | "/" )
-  
+
    pchar       = uchar | ":" | "@" | "&" | "="
    uchar       = unreserved | escape
    unreserved  = alpha | digit | safe | extra
@@ -250,20 +249,8 @@ encodePathInfo segments qs =
     Text.decodeUtf8 $ toByteString $ encodePathInfoUtf8 segments qs
 
 encodePathInfoUtf8 :: [Text] -> [(Text, Maybe Text)] -> Builder
-encodePathInfoUtf8 segments qs = encodePath segments (queryTextToQuery qs)
-
-encodePathInfoString :: [String] -> [(String, String)] -> String
-encodePathInfoString pieces qs =
-  let x = map encodeString  `o` -- utf-8 encode the data characters in path components (we have not added any delimiters yet)
-          map (escapeURIString (\c -> isUnreserved c || c `elem` ":@&=+$,"))   `o` -- percent encode the characters
-          map (\str -> case str of "." -> "%2E" ; ".." -> "%2E%2E" ; _ -> str) `o` -- encode . and ..
-          intercalate "/"  -- add in the delimiters
-      y = paramsToQueryString qs
-   in x pieces ++ y
-    where
-      -- reverse composition
-      o :: (a -> b) -> (b -> c) -> a -> c
-      o = flip (.)
+encodePathInfoUtf8 segments qs =
+    encodePath segments (queryTextToQuery qs)
 
 {-|
 Performs the inverse operation of 'encodePathInfo'.
@@ -294,39 +281,3 @@ Note that while function accepts a 'Text' value, it is expected that 'Text' will
 -}
 decodePathInfo :: ByteString -> [Text]
 decodePathInfo = decodePathSegments
-
-decodePathInfoString :: String -> [String]
-decodePathInfoString =
-  splitPaths         `o` -- split path on delimiters
-  map unEscapeString `o` -- decode any percent encoded characters
-  map decodeString       -- decode octets
-    where
-      -- reverse composition 
-      o :: (a -> b) -> (b -> c) -> a -> c
-      o = flip (.)
-
-splitPaths :: String -> [String]
-splitPaths "" = []
-splitPaths s =
-    let (x, y) = break (== '/') $ drop1Slash s
-     in x : splitPaths y
-  where
-    drop1Slash ('/':x) = x
-    drop1Slash x = x
-
-paramsToQueryString :: [(String, String)] -> String
-paramsToQueryString [] = ""
-paramsToQueryString ps = '?' : concat (intersperse "&" (map paramToQueryString ps))
-    where
-      isOK :: Char -> Bool
-      isOK c = isUnreserved c || (c `elem` ":@$,")
-
-      escapeParamChar :: Char -> String
-      escapeParamChar ' ' = "+"
-      escapeParamChar c = escapeURIChar isOK c
-
-      escapeParamString :: String -> String
-      escapeParamString = concatMap escapeParamChar
-
-      paramToQueryString :: (String, String) -> String
-      paramToQueryString (k,v) = (escapeParamString k) ++ ('=' : escapeParamString v)
