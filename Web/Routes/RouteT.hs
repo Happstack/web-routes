@@ -15,6 +15,7 @@ module Web.Routes.RouteT where
 
 import Control.Applicative (Applicative((<*>), pure), Alternative((<|>), empty))
 import Control.Monad (MonadPlus(mzero, mplus))
+import Control.Monad.Catch (MonadCatch(catch), MonadThrow(throwM))
 import Control.Monad.Cont(MonadCont(callCC))
 import Control.Monad.Error (MonadError(throwError, catchError))
 import Control.Monad.Fix (MonadFix(mfix))
@@ -34,6 +35,18 @@ newtype RouteT url m a = RouteT { unRouteT :: (url -> [(Text, Maybe Text)] -> Te
 class (Monad m) => MonadRoute m where
     type URL m
     askRouteFn :: m (URL m -> [(Text, Maybe Text)] -> Text)
+
+instance MonadCatch m => MonadCatch (RouteT url m) where
+    catch action handler =
+        RouteT $ \ fn -> catch (action' fn) (\ e -> handler' e fn)
+        where
+          action' = unRouteT action
+          handler' e = unRouteT (handler e)
+
+instance MonadThrow m => MonadThrow (RouteT url m) where
+    throwM = throwM'
+        where
+          throwM' e = RouteT $ \ _fn -> throwM e
 
 -- | convert a 'RouteT' based route handler to a handler that can be used with the 'Site' type
 --
