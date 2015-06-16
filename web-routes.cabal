@@ -42,8 +42,7 @@ Library
                           Web.Routes.RouteT
                           Web.Routes.Site
 
-        Extensions:       TemplateHaskell,
-                          FlexibleContexts,
+        Extensions:       FlexibleContexts,
                           CPP
 
 source-repository head
