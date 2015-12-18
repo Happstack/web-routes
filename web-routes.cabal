@@ -49,4 +49,3 @@ Library
 source-repository head
     type:     git
     location: https://github.com/Happstack/web-routes.git
-    subdir:   web-routes
