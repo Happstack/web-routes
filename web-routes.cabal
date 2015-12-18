@@ -18,11 +18,8 @@ test-suite Test
   hs-source-dirs   : test
   build-depends    : base == 4.*,
                      HUnit,
+                     hspec,
                      QuickCheck,
-                     test-framework,
-                     test-framework-hunit,
-                     test-framework-quickcheck2,
-                     test-framework-th,
                      web-routes
 
 Library
