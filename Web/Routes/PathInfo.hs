@@ -308,17 +308,9 @@ instance PathInfo Text where
   toPathSegments = (:[])
   fromPathSegments = anySegment
 
-instance PathInfo [Text] where
-  toPathSegments = id
-  fromPathSegments = many anySegment
-
 instance PathInfo String where
   toPathSegments = (:[]) . pack
   fromPathSegments = unpack <$> anySegment
-
-instance PathInfo [String] where
-  toPathSegments = id . map pack
-  fromPathSegments = many (unpack <$> anySegment)
 
 instance PathInfo Int where
   toPathSegments i = [pack $ show i]
@@ -340,3 +332,7 @@ instance PathInfo Integer where
                  | Text.null r -> Just n
                  | otherwise -> Nothing
 
+
+instance PathInfo a => PathInfo [a] where
+  toPathSegments = concat . fmap toPathSegments
+  fromPathSegments = many fromPathSegments
