@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP, FlexibleInstances, TypeSynonymInstances #-}
+{-# LANGUAGE CPP, FlexibleContexts, FlexibleInstances, TypeSynonymInstances #-}
 
 #if __GLASGOW_HASKELL__ > 702
 {-# LANGUAGE DefaultSignatures, OverloadedStrings, ScopedTypeVariables, TypeOperators #-}
@@ -32,6 +32,7 @@ import Control.Monad (msum)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
 import Data.List as List (stripPrefix, tails)
+import Data.Proxy (Proxy(Proxy))
 import Data.Text as Text (Text, pack, unpack, null, tails, stripPrefix)
 import Data.Text.Encoding (decodeUtf8)
 import Data.Text.Read (decimal, signed)
@@ -340,3 +341,7 @@ instance PathInfo Integer where
                  | Text.null r -> Just n
                  | otherwise -> Nothing
 
+-- No superclass needed here, because t does not appear in a Proxy t.
+instance {-PathInfo t =>-} PathInfo (Proxy t) where
+    toPathSegments Proxy = [pack "proxy"]
+    fromPathSegments = segment (pack "proxy") >> return Proxy
