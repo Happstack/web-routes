@@ -24,8 +24,6 @@ module Web.Routes.PathInfo
 #if __GLASGOW_HASKELL__ > 702
     -- * Re-exported for convenience
     , Generic
-    -- Query is re-exported from Network.HTTP.Types
-    , Query
 #endif
     ) where
 

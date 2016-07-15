@@ -3,6 +3,7 @@
 module Main (main) where
 
 import Data.Monoid
+import Network.HTTP.Types
 import Test.HUnit
 import Test.QuickCheck
 import Test.Hspec
@@ -31,8 +32,8 @@ case_toPathInfo =
 
 case_toPathInfoParams :: Assertion
 case_toPathInfoParams =
-    do toPathInfoParams Home [("q", Just "1"), ("r", Just "2")] @?= "/home?q=1&r=2"
-       toPathInfoParams (Article 0) [("q", Just "1"), ("r", Just "2")] @?= "/article/0?q=1&r=2"
+    do toPathInfoParams Home [("q",Just "1"),("r",Just "2")] @?= "/home?q=1&r=2"
+       toPathInfoParams (Article 0) [("q",Just "1"),("r",Just "2")] @?= "/article/0?q=1&r=2"
 
 case_fromPathInfo :: Assertion
 case_fromPathInfo =
@@ -44,8 +45,8 @@ case_fromPathInfo =
 
 case_fromPathInfoParams :: Assertion
 case_fromPathInfoParams =
-    do fromPathInfoParams "/home?q=1&r=2" @?= Right (Home, [("q", Just "1"), ("r", Just "2")])
-       fromPathInfoParams "/article/0?q=1&r=2" @?= Right (Article 0, [("q", Just "1"), ("r", Just "2")])
+    do fromPathInfoParams "/home?q=1&r=2" @?= Right (Home, [("q",Just "1"),("r",Just "2")])
+       fromPathInfoParams "/article/0?q=1&r=2" @?= Right (Article 0, [("q",Just "1"),("r",Just "2")])
        case fromPathInfoParams "/?q=1&r=2" :: Either String (Sitemap, Query) of
          Left _ -> return ()
          url    -> assertFailure $ "expected a Left, but got: " ++ show url
@@ -56,4 +57,4 @@ main = hspec $ do
  prop "toPathInfoParams" case_toPathInfoParams
  prop "fromPathInfo" case_fromPathInfo
  prop "fromPathInfoParams" case_fromPathInfoParams
- prop "PathInfo_isomorphism"  prop_PathInfo_isomorphism
+ prop "PathInfo_isomorphism" prop_PathInfo_isomorphism
