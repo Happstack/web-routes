@@ -2,6 +2,7 @@
 
 module Main (main) where
 
+import Data.Monoid
 import Test.HUnit
 import Test.QuickCheck
 import Test.Hspec
@@ -28,6 +29,11 @@ case_toPathInfo =
     do toPathInfo Home @?= "/home"
        toPathInfo (Article 0) @?= "/article/0"
 
+case_toPathInfoParams :: Assertion
+case_toPathInfoParams =
+    do toPathInfoParams Home [("q", Just "1"), ("r", Just "2")] @?= "/home?q=1&r=2"
+       toPathInfoParams (Article 0) [("q", Just "1"), ("r", Just "2")] @?= "/article/0?q=1&r=2"
+
 case_fromPathInfo :: Assertion
 case_fromPathInfo =
     do fromPathInfo "/home" @?= Right Home
@@ -36,8 +42,18 @@ case_fromPathInfo =
          Left _ -> return ()
          url    -> assertFailure $ "expected a Left, but got: " ++ show url
 
+case_fromPathInfoParams :: Assertion
+case_fromPathInfoParams =
+    do fromPathInfoParams "/home?q=1&r=2" @?= Right (Home, [("q", Just "1"), ("r", Just "2")])
+       fromPathInfoParams "/article/0?q=1&r=2" @?= Right (Article 0, [("q", Just "1"), ("r", Just "2")])
+       case fromPathInfoParams "/?q=1&r=2" :: Either String (Sitemap, Query) of
+         Left _ -> return ()
+         url    -> assertFailure $ "expected a Left, but got: " ++ show url
+
 main :: IO ()
 main = hspec $ do
  prop "toPathInfo" case_toPathInfo
+ prop "toPathInfoParams" case_toPathInfoParams
  prop "fromPathInfo" case_fromPathInfo
+ prop "fromPathInfoParams" case_fromPathInfoParams
  prop "PathInfo_isomorphism"  prop_PathInfo_isomorphism
