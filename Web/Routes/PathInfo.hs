@@ -294,7 +294,7 @@ fromPathInfo pi =
 --
 -- returns @Right (url, Query@ on success
 
-fromPathInfoParams :: (PathInfo url) => ByteString -> Either String (url, Query)
+fromPathInfoParams :: (PathInfo url) => ByteString -> Either String (url, [(Text, Maybe Text)])
 fromPathInfoParams pi =
   (,query) <$> parseSegments fromPathSegments url
   where

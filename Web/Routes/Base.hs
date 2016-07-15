@@ -23,7 +23,7 @@ import Data.ByteString          (ByteString)
 import Data.List                (intercalate, intersperse)
 import Data.Text                (Text)
 import Data.Text.Encoding       as Text (encodeUtf8, decodeUtf8)
-import Network.HTTP.Types       (Query, encodePath, decodePath, decodePathSegments, queryTextToQuery)
+import Network.HTTP.Types       (Query, encodePath, decodePath, decodePathSegments, queryTextToQuery, queryToQueryText)
 
 {-
 
@@ -290,5 +290,5 @@ decodePathInfo = decodePathSegments
 -- > decodePathInfoParams "/home?q=1"
 -- (["home"],[("q",Just "1")])
 --
-decodePathInfoParams :: ByteString -> ([Text], Query)
-decodePathInfoParams = decodePath
+decodePathInfoParams :: ByteString -> ([Text], [(Text, Maybe Text)])
+decodePathInfoParams = fmap queryToQueryText . decodePath

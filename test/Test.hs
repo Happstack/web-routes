@@ -2,8 +2,7 @@
 
 module Main (main) where
 
-import Data.Monoid
-import Network.HTTP.Types
+import Data.Text (Text)
 import Test.HUnit
 import Test.QuickCheck
 import Test.Hspec
@@ -47,7 +46,7 @@ case_fromPathInfoParams :: Assertion
 case_fromPathInfoParams =
     do fromPathInfoParams "/home?q=1&r=2" @?= Right (Home, [("q",Just "1"),("r",Just "2")])
        fromPathInfoParams "/article/0?q=1&r=2" @?= Right (Article 0, [("q",Just "1"),("r",Just "2")])
-       case fromPathInfoParams "/?q=1&r=2" :: Either String (Sitemap, Query) of
+       case fromPathInfoParams "/?q=1&r=2" :: Either String (Sitemap, [(Text, Maybe Text)]) of
          Left _ -> return ()
          url    -> assertFailure $ "expected a Left, but got: " ++ show url
 

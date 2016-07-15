@@ -19,8 +19,8 @@ test-suite Test
   build-depends    : base == 4.*,
                      HUnit,
                      hspec,
-                     http-types,
                      QuickCheck,
+                     text,
                      web-routes
 
 Library
