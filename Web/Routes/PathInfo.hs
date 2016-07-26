@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP, FlexibleInstances, TypeSynonymInstances #-}
+{-# LANGUAGE CPP, FlexibleInstances, TypeSynonymInstances, TupleSections #-}
 
 #if __GLASGOW_HASKELL__ > 702
 {-# LANGUAGE DefaultSignatures, OverloadedStrings, ScopedTypeVariables, TypeOperators #-}
@@ -18,6 +18,7 @@ module Web.Routes.PathInfo
     , toPathInfo
     , toPathInfoParams
     , fromPathInfo
+    , fromPathInfoParams
     , mkSitePI
     , showParseError
 #if __GLASGOW_HASKELL__ > 702
@@ -41,7 +42,7 @@ import Text.ParserCombinators.Parsec.Combinator (notFollowedBy)
 import Text.ParserCombinators.Parsec.Error (ParseError, errorPos, errorMessages, showErrorMessages)
 import Text.ParserCombinators.Parsec.Pos   (incSourceLine, sourceName, sourceLine, sourceColumn)
 import Text.ParserCombinators.Parsec.Prim  ((<?>), GenParser, getInput, setInput, getPosition, token, parse, many)
-import Web.Routes.Base (decodePathInfo, encodePathInfo)
+import Web.Routes.Base (decodePathInfoParams, decodePathInfo, encodePathInfo)
 import Web.Routes.Site (Site(..))
 
 #if __GLASGOW_HASKELL__ > 702
@@ -286,11 +287,25 @@ toPathInfoParams url params = encodePathInfo (toPathSegments url) params
 fromPathInfo :: (PathInfo url) => ByteString -> Either String url
 fromPathInfo pi =
   parseSegments fromPathSegments (decodePathInfo $ dropSlash pi)
+
+-- | parse a 'String' into '(url, Query)' using 'PathInfo'.
+--
+-- returns @Left "parse error"@ on failure
+--
+-- returns @Right (url, Query@ on success
+
+fromPathInfoParams :: (PathInfo url) => ByteString -> Either String (url, [(Text, Maybe Text)])
+fromPathInfoParams pi =
+  (,query) <$> parseSegments fromPathSegments url
   where
-    dropSlash s =
-        if ((B.singleton '/') `B.isPrefixOf` s)
-        then B.tail s
-        else s
+    (url, query) = decodePathInfoParams $ dropSlash pi
+
+-- | Removes a leading slash, if it exists
+dropSlash :: ByteString -> ByteString
+dropSlash s =
+  if ((B.singleton '/') `B.isPrefixOf` s)
+  then B.tail s
+  else s
 
 -- | turn a routing function into a 'Site' value using the 'PathInfo' class
 mkSitePI :: (PathInfo url) =>

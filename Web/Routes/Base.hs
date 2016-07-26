@@ -14,6 +14,7 @@
 module Web.Routes.Base
        ( encodePathInfo
        , decodePathInfo
+       , decodePathInfoParams
        ) where
 
 import Blaze.ByteString.Builder (Builder, toByteString)
@@ -22,7 +23,7 @@ import Data.ByteString          (ByteString)
 import Data.List                (intercalate, intersperse)
 import Data.Text                (Text)
 import Data.Text.Encoding       as Text (encodeUtf8, decodeUtf8)
-import Network.HTTP.Types       (encodePath, decodePathSegments, queryTextToQuery)
+import Network.HTTP.Types       (Query, encodePath, decodePath, decodePathSegments, queryTextToQuery, queryToQueryText)
 
 {-
 
@@ -281,3 +282,13 @@ Note that while function accepts a 'Text' value, it is expected that 'Text' will
 -}
 decodePathInfo :: ByteString -> [Text]
 decodePathInfo = decodePathSegments
+
+-- | Returns path segments as well as possible query string components
+--
+-- For example:
+--
+-- > decodePathInfoParams "/home?q=1"
+-- (["home"],[("q",Just "1")])
+--
+decodePathInfoParams :: ByteString -> ([Text], [(Text, Maybe Text)])
+decodePathInfoParams = fmap queryToQueryText . decodePath
