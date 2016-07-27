@@ -348,7 +348,6 @@ instance PathInfo Int64 where
   toPathSegments i = [pack $ show i]
   fromPathSegments = pToken (const "Int64") checkIntegral
 
-
 checkIntegral :: Integral a => Text -> Maybe a
 checkIntegral txt =
   case signed decimal txt of
