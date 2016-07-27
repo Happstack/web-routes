@@ -32,6 +32,7 @@ import Control.Applicative ((<$>), (<*))
 import Control.Monad (msum)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
+import Data.Int (Int64)
 import Data.List as List (stripPrefix, tails)
 import Data.Text as Text (Text, pack, unpack, null, tails, stripPrefix)
 import Data.Text.Encoding (decodeUtf8)
@@ -337,21 +338,21 @@ instance PathInfo [String] where
 
 instance PathInfo Int where
   toPathSegments i = [pack $ show i]
-  fromPathSegments = pToken (const "Int") checkInt
-   where checkInt txt =
-           case signed decimal txt of
-             (Left e) -> Nothing
-             (Right (n, r))
-                 | Text.null r -> Just n
-                 | otherwise -> Nothing
+  fromPathSegments = pToken (const "Int") checkIntegral
 
 instance PathInfo Integer where
   toPathSegments i = [pack $ show i]
-  fromPathSegments = pToken (const "Integer") checkInt
-   where checkInt txt =
-           case signed decimal txt of
-             (Left e) -> Nothing
-             (Right (n, r))
-                 | Text.null r -> Just n
-                 | otherwise -> Nothing
+  fromPathSegments = pToken (const "Integer") checkIntegral
 
+instance PathInfo Int64 where
+  toPathSegments i = [pack $ show i]
+  fromPathSegments = pToken (const "Int64") checkIntegral
+
+
+checkIntegral :: Integral a => Text -> Maybe a
+checkIntegral txt =
+  case signed decimal txt of
+    (Left e) -> Nothing
+    (Right (n, r))
+       | Text.null r -> Just n
+       | otherwise -> Nothing
