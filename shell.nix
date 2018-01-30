@@ -6,7 +6,7 @@ let
 
   f = { mkDerivation, base, blaze-builder, bytestring, exceptions
       , ghc-prim, hspec, http-types, HUnit, mtl, parsec, QuickCheck
-      , split, stdenv, text, utf8-string
+      , split, stdenv, text, utf8-string, cabal-install
       }:
       mkDerivation {
         pname = "web-routes";
@@ -14,7 +14,7 @@ let
         src = ./.;
         libraryHaskellDepends = [
           base blaze-builder bytestring exceptions ghc-prim http-types mtl
-          parsec split text utf8-string
+          parsec split text utf8-string cabal-install
         ];
         testHaskellDepends = [ base hspec HUnit QuickCheck ];
         homepage = "http://www.happstack.com/docs/crashcourse/index.html#web-routes";
