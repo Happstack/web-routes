@@ -1,5 +1,5 @@
 Name:             web-routes
-Version:          0.27.13
+Version:          0.27.14
 License:          BSD3
 License-File:     LICENSE
 Author:           jeremy@seereason.com
@@ -28,7 +28,7 @@ Library
                           blaze-builder >= 0.2  && < 0.5,
                           parsec        >= 2    && < 4,
                           bytestring    >= 0.9  && < 0.11,
-                          http-types    >= 0.6  && < 0.12,
+                          http-types    >= 0.6  && < 0.13,
                           mtl           >= 2.0  && < 2.3,
                           text          >= 0.11 && < 1.3,
                           utf8-string   >= 0.3  && < 1.1,
