@@ -18,9 +18,10 @@ import Control.Monad (MonadPlus(mzero, mplus))
 import Control.Monad.Catch (MonadCatch(catch), MonadThrow(throwM))
 import Control.Monad.Cont(MonadCont(callCC))
 import Control.Monad.Error (MonadError(throwError, catchError))
-#if !MIN_VERSION_base(4,11,0)
+#if !MIN_VERSION_base(4,13,0)
 -- Control.Monad.Fail import is redundant since GHC 8.8.1
-import qualified Control.Monad.Fail as Fail
+import Prelude hiding (fail)
+import Control.Monad.Fail (MonadFail(..))
 #endif
 import Control.Monad.Fix (MonadFix(mfix))
 import Control.Monad.Reader(MonadReader(ask,local))
