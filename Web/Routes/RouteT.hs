@@ -18,6 +18,10 @@ import Control.Monad (MonadPlus(mzero, mplus))
 import Control.Monad.Catch (MonadCatch(catch), MonadThrow(throwM))
 import Control.Monad.Cont(MonadCont(callCC))
 import Control.Monad.Error (MonadError(throwError, catchError))
+#if !MIN_VERSION_base(4,11,0)
+-- Control.Monad.Fail import is redundant since GHC 8.8.1
+import qualified Control.Monad.Fail as Fail
+#endif
 import Control.Monad.Fix (MonadFix(mfix))
 import Control.Monad.Reader(MonadReader(ask,local))
 import Control.Monad.RWS (MonadRWS)
@@ -85,6 +89,8 @@ instance (Monad m) => Monad (RouteT url m) where
     m >>= k  = RouteT $ \ url -> do
         a <- unRouteT m url
         unRouteT (k a) url
+
+instance (MonadFail m) => MonadFail (RouteT url m) where
     fail msg = liftRouteT (fail msg)
 
 instance (MonadPlus m, Monad (RouteT url m)) => MonadPlus (RouteT url m) where
