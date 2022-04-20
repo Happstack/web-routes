@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP, FlexibleInstances, TypeSynonymInstances, TupleSections #-}
+{-# LANGUAGE CPP, FlexibleContexts, FlexibleInstances, TupleSections #-}
 
 #if __GLASGOW_HASKELL__ > 702
 {-# LANGUAGE DefaultSignatures, OverloadedStrings, ScopedTypeVariables, TypeOperators #-}

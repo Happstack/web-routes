@@ -1,4 +1,4 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving, MultiParamTypeClasses, FlexibleInstances, TypeFamilies, PackageImports, FlexibleContexts, UndecidableInstances #-}
+{-# LANGUAGE CPP, FlexibleContexts, FlexibleInstances, MultiParamTypeClasses, TypeFamilies, UndecidableInstances #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Web.Route.RouteT

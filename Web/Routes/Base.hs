@@ -1,4 +1,3 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving, FlexibleInstances, TypeFamilies, PackageImports, FlexibleContexts, UndecidableInstances #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Web.Routes.Base

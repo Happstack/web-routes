@@ -1,4 +1,4 @@
-module Web.Routes 
+module Web.Routes
     ( module Web.Routes.Base
     , module Web.Routes.PathInfo
     , module Web.Routes.QuickCheck
