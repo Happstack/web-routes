@@ -32,12 +32,13 @@ import Control.Applicative ((<$>), (<*))
 import Control.Monad (msum)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
-import Data.Int (Int64)
+import Data.Int (Int8, Int16, Int32, Int64)
 import Data.List as List (stripPrefix, tails)
 import Data.Text as Text (Text, pack, unpack, null, tails, stripPrefix)
 import Data.Text.Encoding (decodeUtf8)
 import Data.Text.Read (decimal, signed)
 import Data.Maybe (fromJust)
+import Data.Word (Word, Word8, Word16, Word32, Word64)
 import Network.HTTP.Types
 import Text.ParserCombinators.Parsec.Combinator (notFollowedBy)
 import Text.ParserCombinators.Parsec.Error (ParseError, errorPos, errorMessages, showErrorMessages)
@@ -340,13 +341,45 @@ instance PathInfo Int where
   toPathSegments i = [pack $ show i]
   fromPathSegments = pToken (const "Int") checkIntegral
 
-instance PathInfo Integer where
+instance PathInfo Int8 where
   toPathSegments i = [pack $ show i]
-  fromPathSegments = pToken (const "Integer") checkIntegral
+  fromPathSegments = pToken (const "Int8") checkIntegral
+
+instance PathInfo Int16 where
+  toPathSegments i = [pack $ show i]
+  fromPathSegments = pToken (const "Int16") checkIntegral
+
+instance PathInfo Int32 where
+  toPathSegments i = [pack $ show i]
+  fromPathSegments = pToken (const "Int32") checkIntegral
 
 instance PathInfo Int64 where
   toPathSegments i = [pack $ show i]
   fromPathSegments = pToken (const "Int64") checkIntegral
+
+instance PathInfo Integer where
+  toPathSegments i = [pack $ show i]
+  fromPathSegments = pToken (const "Integer") checkIntegral
+
+instance PathInfo Word where
+  toPathSegments i = [pack $ show i]
+  fromPathSegments = pToken (const "Word") checkIntegral
+
+instance PathInfo Word8 where
+  toPathSegments i = [pack $ show i]
+  fromPathSegments = pToken (const "Word8") checkIntegral
+
+instance PathInfo Word16 where
+  toPathSegments i = [pack $ show i]
+  fromPathSegments = pToken (const "Word16") checkIntegral
+
+instance PathInfo Word32 where
+  toPathSegments i = [pack $ show i]
+  fromPathSegments = pToken (const "Word32") checkIntegral
+
+instance PathInfo Word64 where
+  toPathSegments i = [pack $ show i]
+  fromPathSegments = pToken (const "Word64") checkIntegral
 
 checkIntegral :: Integral a => Text -> Maybe a
 checkIntegral txt =
