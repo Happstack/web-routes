@@ -17,7 +17,11 @@ import Control.Applicative (Applicative((<*>), pure), Alternative((<|>), empty))
 import Control.Monad (MonadPlus(mzero, mplus))
 import Control.Monad.Catch (MonadCatch(catch), MonadThrow(throwM))
 import Control.Monad.Cont(MonadCont(callCC))
+#if MIN_VERSION_mtl(2,3,0)
+import Control.Monad.Except (MonadError(throwError, catchError))
+#else
 import Control.Monad.Error (MonadError(throwError, catchError))
+#endif
 #if !MIN_VERSION_base(4,13,0)
 -- Control.Monad.Fail import is redundant since GHC 8.8.1
 import Prelude hiding (fail)
