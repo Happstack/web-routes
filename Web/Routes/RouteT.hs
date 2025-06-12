@@ -84,6 +84,7 @@ instance (Functor m) => Functor (RouteT url m) where
 instance (Applicative m) => Applicative (RouteT url m) where
   pure = liftRouteT . pure
   f <*> v = RouteT $ \ url -> unRouteT f url <*> unRouteT v url
+  f *> v = RouteT $ \ url -> unRouteT f url *> unRouteT v url
 
 instance (Alternative m) => Alternative (RouteT url m) where
     empty   = liftRouteT empty
