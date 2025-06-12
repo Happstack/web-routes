@@ -90,7 +90,9 @@ instance (Alternative m) => Alternative (RouteT url m) where
     m <|> n = RouteT $ \ url -> unRouteT m url <|> unRouteT n url
 
 instance (Monad m) => Monad (RouteT url m) where
+#if !MIN_VERSION_base(4,8,0)
     return   = liftRouteT . return
+#endif
     m >>= k  = RouteT $ \ url -> do
         a <- unRouteT m url
         unRouteT (k a) url
