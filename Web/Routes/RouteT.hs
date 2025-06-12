@@ -84,13 +84,16 @@ instance (Functor m) => Functor (RouteT url m) where
 instance (Applicative m) => Applicative (RouteT url m) where
   pure = liftRouteT . pure
   f <*> v = RouteT $ \ url -> unRouteT f url <*> unRouteT v url
+  f *> v = RouteT $ \ url -> unRouteT f url *> unRouteT v url
 
 instance (Alternative m) => Alternative (RouteT url m) where
     empty   = liftRouteT empty
     m <|> n = RouteT $ \ url -> unRouteT m url <|> unRouteT n url
 
 instance (Monad m) => Monad (RouteT url m) where
+#if !MIN_VERSION_base(4,8,0)
     return   = liftRouteT . return
+#endif
     m >>= k  = RouteT $ \ url -> do
         a <- unRouteT m url
         unRouteT (k a) url
