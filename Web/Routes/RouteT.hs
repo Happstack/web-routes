@@ -90,7 +90,6 @@ instance (Alternative m) => Alternative (RouteT url m) where
     m <|> n = RouteT $ \ url -> unRouteT m url <|> unRouteT n url
 
 instance (Monad m) => Monad (RouteT url m) where
-    return   = liftRouteT . return
     m >>= k  = RouteT $ \ url -> do
         a <- unRouteT m url
         unRouteT (k a) url
