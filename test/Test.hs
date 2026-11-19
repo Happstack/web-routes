@@ -50,6 +50,48 @@ case_fromPathInfoParams =
          Left _ -> return ()
          url    -> assertFailure $ "expected a Left, but got: " ++ show url
 
+-- the root: no path segments
+root :: [Text]
+root = []
+
+case_toAbsolutePathInfo :: Assertion
+case_toAbsolutePathInfo =
+    do -- toPathInfo and toPathInfoParams are as they were: the root is ""
+       toPathInfo root @?= ""
+       toPathInfoParams root [("q",Just "1")] @?= "?q=1"
+       -- the absolute versions give "/" for it, and the same for the rest
+       toAbsolutePathInfo root @?= "/"
+       toAbsolutePathInfoParams root [("q",Just "1")] @?= "/?q=1"
+       toAbsolutePathInfo Home @?= "/home"
+       toAbsolutePathInfoParams (Article 0) [("q",Just "1")] @?= "/article/0?q=1"
+
+case_fromPathInfoText :: Assertion
+case_fromPathInfoText =
+    do fromPathInfoText "/home" @?= Right Home
+       fromPathInfoText "/article/0" @?= Right (Article 0)
+       fromPathInfoParamsText "/article/0?q=1&r=2" @?= Right (Article 0, [("q",Just "1"),("r",Just "2")])
+       case fromPathInfoText "/" :: Either String Sitemap of
+         Left _ -> return ()
+         url    -> assertFailure $ "expected a Left, but got: " ++ show url
+
+case_dropTrailingSlash :: Assertion
+case_dropTrailingSlash =
+    do -- fromPathInfo keeps a trailing slash, as a last, empty segment
+       case fromPathInfo "/home/" :: Either String Sitemap of
+         Left _ -> return ()
+         url    -> assertFailure $ "expected a Left, but got: " ++ show url
+       fromPathInfo (dropTrailingSlash "/home/") @?= Right Home
+       fromPathInfoParams (dropTrailingSlash "/article/0/?q=1") @?= Right (Article 0, [("q",Just "1")])
+       dropTrailingSlash "/home/" @?= "/home"
+       dropTrailingSlash "/home/?q=1" @?= "/home?q=1"
+       dropTrailingSlash "/home" @?= "/home"
+       dropTrailingSlash "/" @?= "/"
+       dropTrailingSlash "" @?= ""
+       dropTrailingSlashText "/home/" @?= "/home"
+       dropTrailingSlashText "/home/?q=1" @?= "/home?q=1"
+       dropTrailingSlashText "/" @?= "/"
+       fromPathInfoText (dropTrailingSlashText "/article/0/") @?= Right (Article 0)
+
 main :: IO ()
 main = hspec $ do
  prop "toPathInfo" case_toPathInfo
@@ -57,3 +99,6 @@ main = hspec $ do
  prop "fromPathInfo" case_fromPathInfo
  prop "fromPathInfoParams" case_fromPathInfoParams
  prop "PathInfo_isomorphism" prop_PathInfo_isomorphism
+ prop "toAbsolutePathInfo" case_toAbsolutePathInfo
+ prop "fromPathInfoText" case_fromPathInfoText
+ prop "dropTrailingSlash" case_dropTrailingSlash

@@ -17,8 +17,14 @@ module Web.Routes.PathInfo
     , PathInfo(..)
     , toPathInfo
     , toPathInfoParams
+    , toAbsolutePathInfo
+    , toAbsolutePathInfoParams
     , fromPathInfo
     , fromPathInfoParams
+    , fromPathInfoText
+    , fromPathInfoParamsText
+    , dropTrailingSlash
+    , dropTrailingSlashText
     , mkSitePI
     , showParseError
 #if __GLASGOW_HASKELL__ > 702
@@ -35,7 +41,8 @@ import qualified Data.ByteString.Char8 as B
 import Data.Int (Int8, Int16, Int32, Int64)
 import Data.List as List (stripPrefix, tails)
 import Data.Text as Text (Text, pack, unpack, null, tails, stripPrefix)
-import Data.Text.Encoding (decodeUtf8)
+import qualified Data.Text as T
+import Data.Text.Encoding (decodeUtf8, encodeUtf8)
 import Data.Text.Read (decimal, signed)
 import Data.Maybe (fromJust)
 import Data.Word (Word, Word8, Word16, Word32, Word64)
@@ -266,6 +273,27 @@ toPathInfoParams :: (PathInfo url) =>
                  -> Text
 toPathInfoParams url params = encodePathInfo (toPathSegments url) params
 
+-- | as 'toPathInfo', but an absolute path: a url with no path segments
+-- (the root) is @\"\/\"@, where 'toPathInfo' gives @\"\"@ (which, as a
+-- link, is the current page). Other urls are as 'toPathInfo' gives them.
+toAbsolutePathInfo :: (PathInfo url) => url -> Text
+toAbsolutePathInfo = absolutePath . toPathInfo
+
+-- | as 'toPathInfoParams', but an absolute path: the root is
+-- @\"\/\"@, and with parameters @\"\/?q=1\"@ (where
+-- 'toPathInfoParams' gives @\"?q=1\"@)
+toAbsolutePathInfoParams :: (PathInfo url) =>
+                            url -- ^ url
+                         -> [(Text, Maybe Text)] -- ^ query string parameter
+                         -> Text
+toAbsolutePathInfoParams url params = absolutePath (toPathInfoParams url params)
+
+-- | a path info with a leading slash, if it has no path segments
+absolutePath :: Text -> Text
+absolutePath t
+  | T.null t || T.pack "?" `T.isPrefixOf` t = T.cons '/' t
+  | otherwise                               = t
+
 -- should this fail if not all the input was consumed?
 --
 -- in theory we
@@ -301,6 +329,36 @@ fromPathInfoParams pi =
   (,query) <$> parseSegments fromPathSegments url
   where
     (url, query) = decodePathInfoParams $ dropSlash pi
+
+-- | as 'fromPathInfo', for a path info as 'Text' (which is UTF-8
+-- encoded, as a URL is)
+fromPathInfoText :: (PathInfo url) => Text -> Either String url
+fromPathInfoText = fromPathInfo . encodeUtf8
+
+-- | as 'fromPathInfoParams', for a path info as 'Text'
+fromPathInfoParamsText :: (PathInfo url) => Text -> Either String (url, [(Text, Maybe Text)])
+fromPathInfoParamsText = fromPathInfoParams . encodeUtf8
+
+-- | Removes one slash at the end of the path (before the query string,
+-- if there is one), unless the path is only a slash: so a url parses the
+-- same with or without it. 'fromPathInfo' itself keeps it, as a last,
+-- empty segment, since a site may give @\/foo@ and @\/foo\/@ different
+-- meanings.
+--
+-- > dropTrailingSlash "/foo/bar/"      == "/foo/bar"
+-- > dropTrailingSlash "/foo/bar/?q=1"  == "/foo/bar?q=1"
+-- > dropTrailingSlash "/"              == "/"
+-- > fromPathInfo (dropTrailingSlash pathInfo)
+dropTrailingSlash :: ByteString -> ByteString
+dropTrailingSlash s =
+  let (path, query) = B.break (== '?') s
+  in if B.length path > 1 && B.last path == '/' then B.init path `B.append` query else s
+
+-- | 'dropTrailingSlash', for a path info as 'Text'
+dropTrailingSlashText :: Text -> Text
+dropTrailingSlashText s =
+  let (path, query) = T.break (== '?') s
+  in if T.length path > 1 && T.last path == '/' then T.init path `T.append` query else s
 
 -- | Removes a leading slash, if it exists
 dropSlash :: ByteString -> ByteString

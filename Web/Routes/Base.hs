@@ -17,7 +17,6 @@ module Web.Routes.Base
        ) where
 
 import Blaze.ByteString.Builder (Builder, toByteString)
-import Codec.Binary.UTF8.String (encodeString, decodeString)
 import Data.ByteString          (ByteString)
 import Data.List                (intercalate, intersperse)
 import Data.Text                (Text)
@@ -219,29 +218,47 @@ http scheme does have an authority.
 -}
 
 {-|
-Encodes a list of path segments into a valid URL fragment.
+Encodes a list of path segments, and query string parameters, into a
+valid URL fragment.
 
-This function takes the following three steps:
+This function takes the following steps:
 
 * UTF-8 encodes the characters.
 
 * Performs percent encoding on all unreserved characters, as well as \:\@\=\+\$,
 
-* Intercalates with a slash.
+* Prefixes each segment with a slash.
+
+* Appends the query string, if there are parameters.
 
 For example:
 
-> encodePathInfo [\"foo\", \"bar\", \"baz\"]
+> encodePathInfo [\"foo\", \"bar\", \"baz\"] []
 
-\"foo\/bar\/baz\"
+\"\/foo\/bar\/baz\"
 
-> encodePathInfo [\"foo bar\", \"baz\/bin\"]
+> encodePathInfo [\"foo bar\", \"baz\/bin\"] []
 
-\"foo\%20bar\/baz\%2Fbin\"
+\"\/foo\%20bar\/baz\%2Fbin\"
 
-> encodePathInfo [\"שלום\"]
+> encodePathInfo [\"שלום\"] []
 
-\"%D7%A9%D7%9C%D7%95%D7%9D\"
+\"\/%D7%A9%D7%9C%D7%95%D7%9D\"
+
+> encodePathInfo [\"foo\"] [(\"q\", Just \"1\")]
+
+\"\/foo?q=1\"
+
+As each segment is prefixed with a slash, no segments (the root) is the
+empty string, not a slash:
+
+> encodePathInfo [] []
+
+\"\"
+
+> encodePathInfo [] [(\"q\", Just \"1\")]
+
+\"?q=1\"
 
 -}
 encodePathInfo :: [Text] -> [(Text, Maybe Text)] -> Text
@@ -263,11 +280,9 @@ In particular, this function:
 
 * UTF-8 decodes the resulting data.
 
-This utilizes 'decodeString' from the utf8-string library, and thus all UTF-8
-decoding errors are handled as per that library.
-
-In general, you will want to strip the leading slash from a pathinfo before
-passing it to this function. For example:
+This utilizes 'decodePathSegments' from the http-types library, and thus all
+UTF-8 decoding errors are handled as per that library. A leading slash is
+dropped; a trailing slash is a last, empty segment. For example:
 
 > decodePathInfo \"\"
 
@@ -275,9 +290,17 @@ passing it to this function. For example:
 
 > decodePathInfo \"\/\"
 
-[\"\"]
+\[\]
 
-Note that while function accepts a 'Text' value, it is expected that 'Text' will only contain the subset of characters which are allowed to appear in a URL.
+> decodePathInfo \"\/foo\/bar\"
+
+[\"foo\",\"bar\"]
+
+> decodePathInfo \"\/foo\/bar\/\"
+
+[\"foo\",\"bar\",\"\"]
+
+Note that while this function accepts a 'ByteString' value, it is expected that it will only contain the subset of characters which are allowed to appear in a URL.
 -}
 decodePathInfo :: ByteString -> [Text]
 decodePathInfo = decodePathSegments
